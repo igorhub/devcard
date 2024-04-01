@@ -31,6 +31,7 @@ func UnmarshalCell(cellType string, data []byte) (Cell, error) {
 		&ImageCell{},
 		&JumpCell{},
 		&CustomCell{},
+		&WaitCell{},
 	}
 
 	for _, c := range candidates {

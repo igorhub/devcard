@@ -134,15 +134,35 @@ func (c *client) initDevcard(devcardName string, unregisterFn func()) {
 
 const warmupTime = 1000 * time.Millisecond
 
+var breakBatching []byte = []byte("break batching")
+
 func makeBatcher(websocketC chan<- []byte) (chan []byte, chan struct{}) {
 	ch := make(chan []byte)
 	done := make(chan struct{})
-	init := time.Now()
 
 	var batch [][]byte
 	go func() {
-		for msg := range ch {
-			if time.Since(init) < warmupTime {
+		batching := true
+		stopBatching := time.NewTimer(warmupTime)
+	loop:
+		for {
+			var msg []byte
+			var ok bool
+			select {
+			case msg, ok = <-ch:
+				if !ok {
+					break loop
+				}
+				if slices.Compare(msg, breakBatching) == 0 {
+					batching = false
+					msg = msgNop()
+				}
+			case <-stopBatching.C:
+				batching = false
+				msg = msgNop()
+			}
+
+			if batching {
 				batch = append(batch, msg)
 			} else if len(batch) > 0 {
 				batch = append(batch, msg)
@@ -192,6 +212,16 @@ func processUpdates(c *client, ch chan<- []byte, control chan<- string, updates 
 					ch <- msgJump(x.Id)
 					wg.Done()
 				}(cell)
+			}
+
+			if cell, ok := x.Cell.(*devcard.WaitCell); ok {
+				ch <- breakBatching
+				c.unblock = cell.Id
+				c.unblockC = make(chan struct{})
+				go func() {
+					<-c.unblockC
+					control <- "unblock " + cell.Id
+				}()
 			}
 
 		case project.MsgError:

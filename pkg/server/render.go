@@ -49,6 +49,8 @@ func renderCell(project *project.Project, highlighter *highlighter, b devcard.Ce
 		return ""
 	case *devcard.CustomCell:
 		return renderError("CustomCell cannot be rendered", "CustomCell must be cast into one of the renderable cells.")
+	case *devcard.WaitCell:
+		return renderWait(b)
 	case nil:
 		return renderError("Rendering error: trying to render nil", "")
 	default:
@@ -154,4 +156,14 @@ func renderImage(b *devcard.ImageCell) string {
 		fmt.Fprintf(s, f, url.QueryEscape(img.Path), img.Path, img.Annotation)
 	}
 	return s.String()
+}
+
+func renderWait(b *devcard.WaitCell) string {
+	var text, button string
+	text = MdToHTML(b.Text)
+	if b.Button != "" {
+		onclick := `fetch('/unblock/` + b.Id + `');`
+		button = `<button type="button" onclick="` + onclick + `">` + b.Button + `</button>`
+	}
+	return text + button
 }
