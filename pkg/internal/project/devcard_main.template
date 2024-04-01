@@ -1,0 +1,23 @@
+package main
+
+import (
+    "fmt"
+	"os"
+
+	"github.com/igorhub/devcard/pkg/dcruntime"
+	{{.Import}}
+)
+
+func main() {
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "Usage: %s [TCP_ADDRESS] TEMP_DIR\n", os.Args[0])
+		os.Exit(2)
+	}
+	if len(os.Args) == 2 {
+		tempDir := os.Args[1]
+		dcruntime.ProduceDevcardWithJSON(tempDir, {{.Card}})
+	} else {
+		addr, tempDir := os.Args[1], os.Args[2]
+		dcruntime.ProduceDevcardWithTCP(addr, tempDir, {{.Card}})
+	}
+}

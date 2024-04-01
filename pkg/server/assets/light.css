@@ -1,0 +1,14 @@
+:root {
+	--nc-tx-1: #000000;
+	--nc-tx-2: #1A1A1A;
+	--nc-bg-1: #FFFFFF;
+	--nc-bg-2: #F8F8F8;
+	--nc-bg-3: #E5E7EB;
+	--nc-lk-1: #0070F3;
+	--nc-lk-2: #0366D6;
+	--nc-lk-tx: #FFFFFF;
+	--nc-ac-1: #79FFE1;
+	--nc-ac-tx: #0C4047;
+	--nc-err-fg: #CC241D;
+	--nc-err-bg: #FFE4E1;
+}
