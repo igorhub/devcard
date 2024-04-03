@@ -85,14 +85,22 @@ func renderMonospace(highlighter *highlighter, b *devcard.MonospaceCell) string 
 }
 
 func renderSource(project *project.Project, highlighter *highlighter, b *devcard.SourceCell) string {
-	if b.Decl == "" {
+	if len(b.Decls) == 0 {
 		return ""
 	}
-	s, err := project.Source(b.Decl)
-	if err != nil {
-		return renderError("SourceCell error", err.Error())
+
+	s := strings.Builder{}
+	for i, decl := range b.Decls {
+		if i != 0 {
+			s.WriteString("\n\n")
+		}
+		src, err := project.Source(decl)
+		if err != nil {
+			return renderError("SourceCell error", err.Error())
+		}
+		s.WriteString(src)
 	}
-	return renderMonospace(highlighter, devcard.NewMonospaceCell(s, devcard.WithHighlighting("go")))
+	return renderMonospace(highlighter, devcard.NewMonospaceCell(s.String(), devcard.WithHighlighting("go")))
 }
 
 func renderValue(highlighter *highlighter, b *devcard.ValueCell) string {

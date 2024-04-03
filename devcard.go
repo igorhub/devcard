@@ -250,17 +250,17 @@ func (d *Devcard) Aval(annotationsAndVals ...any) *AnnotatedValueCell {
 
 // Source appends a [SourceCell] to the bottom of the devcard.
 //
-// The cell contains the source of the declaration decl. As of now, only
+// The cell contains the source of the declarations decls. As of now, only
 // function declarations are supported. Declarations must be prefixed with the
 // name of their package. For example:
 //
-//	c.Source("examples.DevcardBasicUsage")
+//	c.Source("examples.DevcardTextCells")
 //
 // The appended SourceCell is immediately sent to the client.
-func (d *Devcard) Source(decl string) *SourceCell {
+func (d *Devcard) Source(decls ...string) *SourceCell {
 	d.lock.Lock()
 	defer d.lock.Unlock()
-	cell := NewSourceCell(decl)
+	cell := NewSourceCell(decls...)
 	d.Cells = append(d.Cells, cell)
 	d.sendLastCell()
 	return cell

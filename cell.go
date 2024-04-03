@@ -293,7 +293,7 @@ func NewAnnotatedValueCell(annotationsAndVals ...any) *AnnotatedValueCell {
 
 // SourceCell is a cell with source code of a function.
 type SourceCell struct {
-	Decl string `json:"decl"`
+	Decls []string `json:"decls"`
 }
 
 // Returns "SourceCell". Used for marshaling.
@@ -303,18 +303,22 @@ func (b *SourceCell) Type() string {
 
 // Append converts vals to strings and appends them to the cell.
 func (b *SourceCell) Append(vals ...any) {
-	b.Decl += valsToString(vals)
+	for _, val := range vals {
+		b.Decls = append(b.Decls, valToString(val))
+	}
 }
 
 // Erase clears the content of the cell.
 func (b *SourceCell) Erase() {
-	b.Decl = ""
+	b.Decls = b.Decls[0:0:0]
 }
 
 // NewSourceCell creates [SourceCell].
-func NewSourceCell(vals ...any) *SourceCell {
+func NewSourceCell(decls ...string) *SourceCell {
 	b := &SourceCell{}
-	b.Append(vals...)
+	for _, decl := range decls {
+		b.Append(decl)
+	}
 	return b
 }
 
