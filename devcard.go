@@ -116,7 +116,7 @@ func (d *Devcard) send(msg map[string]any) {
 func (d *Devcard) sendCell(index int) {
 	cell := d.Cells[index]
 	if customCell, ok := cell.(customCell); ok {
-		cell = NewHTMLCell(customCell.HTML())
+		cell = customCell.Cast()
 	}
 	d.send(map[string]any{
 		"msg_type":  MessageTypeCell,

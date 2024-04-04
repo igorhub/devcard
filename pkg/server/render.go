@@ -47,6 +47,8 @@ func renderCell(project *project.Project, highlighter *highlighter, b devcard.Ce
 		return renderImage(b)
 	case *devcard.JumpCell:
 		return ""
+	case *devcard.CustomCell:
+		return renderError("CustomCell cannot be rendered", "CustomCell must be cast into one of the renderable cells.")
 	case nil:
 		return renderError("Rendering error: trying to render nil", "")
 	default:

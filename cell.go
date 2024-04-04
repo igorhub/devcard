@@ -30,6 +30,7 @@ func UnmarshalCell(cellType string, data []byte) (Cell, error) {
 		&SourceCell{},
 		&ImageCell{},
 		&JumpCell{},
+		&CustomCell{},
 	}
 
 	for _, b := range candidates {
@@ -409,7 +410,7 @@ func NewImageCell(tempDir string) *ImageCell {
 
 type customCell interface {
 	Cell
-	HTML() string
+	Cast() Cell
 }
 
 // CustomCell provides a base for user-defined cells.
