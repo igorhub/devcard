@@ -246,11 +246,6 @@ func (r *Repo) Test(ctx context.Context) int {
 	r.runLock.Lock()
 	defer r.runLock.Unlock()
 
-	err := r.Prepare()
-	if err != nil {
-		return 0
-	}
-
 	cmd := exec.CommandContext(ctx, "go", "test", r.DevcardInfo.ImportPath)
 	cmd.Dir = r.Dir
 	b, err := cmd.CombinedOutput()
