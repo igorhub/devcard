@@ -1,4 +1,4 @@
-package dcruntime
+package runtime
 
 import (
 	"encoding/json"

@@ -4,7 +4,7 @@ import (
     "fmt"
 	"os"
 
-	"github.com/igorhub/devcard/pkg/dcruntime"
+	"github.com/igorhub/devcard/pkg/runtime"
 	{{.Import}}
 )
 
@@ -15,9 +15,9 @@ func main() {
 	}
 	if len(os.Args) == 2 {
 		tempDir := os.Args[1]
-		dcruntime.ProduceDevcardWithJSON(tempDir, {{.Card}})
+		runtime.ProduceDevcardWithJSON(tempDir, {{.Card}})
 	} else {
 		addr, tempDir := os.Args[1], os.Args[2]
-		dcruntime.ProduceDevcardWithTCP(addr, tempDir, {{.Card}})
+		runtime.ProduceDevcardWithTCP(addr, tempDir, {{.Card}})
 	}
 }
