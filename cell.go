@@ -285,7 +285,7 @@ func (b *AnnotatedValueCell) Erase() {
 	b.AnnotatedValues = []AnnotatedValue{}
 }
 
-// NewMarkdownCell creates [AnnotatedValueCell].
+// NewAnnotatedValueCell creates [AnnotatedValueCell].
 func NewAnnotatedValueCell(annotationsAndVals ...any) *AnnotatedValueCell {
 	b := &AnnotatedValueCell{AnnotatedValues: []AnnotatedValue{}}
 	b.Append(annotationsAndVals...)
