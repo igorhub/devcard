@@ -424,6 +424,10 @@ func (p *Project) rewriteFile(f *ast.File) ([]byte, error) {
 }
 
 func isDevcardProducer(fset *token.FileSet, fn *ast.FuncDecl) bool {
+	if !strings.HasPrefix(fn.Name.Name, "Devcard") {
+		return false
+	}
+
 	if fn.Type.TypeParams != nil {
 		return false
 	}
