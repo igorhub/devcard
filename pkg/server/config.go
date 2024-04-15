@@ -146,6 +146,7 @@ func defaultConfig() Config {
 		Editor: "vscode",
 	}
 	cfg.Appearance.Stylesheets = []string{"builtin", "builtin/light"}
+	cfg.Appearance.CodeHighlighting = "tango"
 
 	cwd, err := os.Getwd()
 	if err != nil {
