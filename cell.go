@@ -33,10 +33,10 @@ func UnmarshalCell(cellType string, data []byte) (Cell, error) {
 		&CustomCell{},
 	}
 
-	for _, b := range candidates {
-		if cellType == b.Type() {
-			err := json.Unmarshal(data, b)
-			return b, err
+	for _, c := range candidates {
+		if cellType == c.Type() {
+			err := json.Unmarshal(data, c)
+			return c, err
 		}
 	}
 	return nil, fmt.Errorf("unknown type of cell (%s)", cellType)
@@ -48,25 +48,25 @@ type HTMLCell struct {
 }
 
 // Returns "HTMLCell". Used for marshaling.
-func (b *HTMLCell) Type() string {
+func (c *HTMLCell) Type() string {
 	return "HTMLCell"
 }
 
 // Append converts vals to strings and appends them to the cell.
-func (b *HTMLCell) Append(vals ...any) {
-	b.HTML += valsToString(vals)
+func (c *HTMLCell) Append(vals ...any) {
+	c.HTML += valsToString(vals)
 }
 
 // Erase clears the content of the cell.
-func (b *HTMLCell) Erase() {
-	b.HTML = ""
+func (c *HTMLCell) Erase() {
+	c.HTML = ""
 }
 
 // NewHTMLCell creates [HTMLCell].
 func NewHTMLCell(vals ...any) *HTMLCell {
-	b := &HTMLCell{}
-	b.Append(vals...)
-	return b
+	c := &HTMLCell{}
+	c.Append(vals...)
+	return c
 }
 
 // MarkdownCell is a cell with markdown-formatted text.
@@ -75,12 +75,12 @@ type MarkdownCell struct {
 }
 
 // Returns "MarkdownCell". Used for marshaling.
-func (b *MarkdownCell) Type() string {
+func (c *MarkdownCell) Type() string {
 	return "MarkdownCell"
 }
 
 // Append converts vals to strings and appends them to the cell.
-func (b *MarkdownCell) Append(vals ...any) {
+func (c *MarkdownCell) Append(vals ...any) {
 	s := new(strings.Builder)
 	for _, val := range vals {
 		if str, ok := val.(string); ok {
@@ -89,22 +89,22 @@ func (b *MarkdownCell) Append(vals ...any) {
 			s.WriteString("`" + valToString(val) + "`")
 		}
 	}
-	if b.Text != "" && s.Len() > 0 {
-		b.Text += " "
+	if c.Text != "" && s.Len() > 0 {
+		c.Text += " "
 	}
-	b.Text += s.String()
+	c.Text += s.String()
 }
 
 // Erase clears the content of the cell.
-func (b *MarkdownCell) Erase() {
-	b.Text = ""
+func (c *MarkdownCell) Erase() {
+	c.Text = ""
 }
 
 // NewMarkdownCell creates [MarkdownCell].
 func NewMarkdownCell(vals ...any) *MarkdownCell {
-	b := &MarkdownCell{}
-	b.Append(vals...)
-	return b
+	c := &MarkdownCell{}
+	c.Append(vals...)
+	return c
 }
 
 // ErrorCell is a cell for error reporting.
@@ -114,7 +114,7 @@ type ErrorCell struct {
 }
 
 // Returns "ErrorCell". Used for marshaling.
-func (b *ErrorCell) Type() string {
+func (c *ErrorCell) Type() string {
 	return "ErrorCell"
 }
 
@@ -123,32 +123,32 @@ func (b *ErrorCell) Type() string {
 // When the cell is blank, the first of vals becomes the cell's title and the
 // rest become its body. If the cell is not blank, all vals become the cell's
 // body.
-func (b *ErrorCell) Append(vals ...any) {
+func (c *ErrorCell) Append(vals ...any) {
 	switch {
-	case b.Title == "" && len(vals) == 1:
-		b.Title = valsToString(vals)
-	case b.Title == "" && len(vals) > 1:
-		b.Title = valsToString(vals[:1])
-		b.Body = valsToString(vals[1:])
-	case b.Title != "":
-		if b.Body != "" {
-			b.Body += "\n"
+	case c.Title == "" && len(vals) == 1:
+		c.Title = valsToString(vals)
+	case c.Title == "" && len(vals) > 1:
+		c.Title = valsToString(vals[:1])
+		c.Body = valsToString(vals[1:])
+	case c.Title != "":
+		if c.Body != "" {
+			c.Body += "\n"
 		}
-		b.Body += valsToString(vals)
+		c.Body += valsToString(vals)
 	}
 }
 
 // Erase clears the content of the cell.
-func (b *ErrorCell) Erase() {
-	b.Title = ""
-	b.Body = ""
+func (c *ErrorCell) Erase() {
+	c.Title = ""
+	c.Body = ""
 }
 
 // NewErrorCell creates [ErrorCell].
 func NewErrorCell(vals ...any) *ErrorCell {
-	b := &ErrorCell{}
-	b.Append(vals...)
-	return b
+	c := &ErrorCell{}
+	c.Append(vals...)
+	return c
 }
 
 // MonospaceCell is a cell that's supposed to be rendered as monospace, such as block of code.
@@ -158,7 +158,7 @@ type MonospaceCell struct {
 }
 
 // Returns "MonospaceCell". Used for marshaling.
-func (b *MonospaceCell) Type() string {
+func (c *MonospaceCell) Type() string {
 	return "MonospaceCell"
 }
 
@@ -167,19 +167,19 @@ type monospaceCellOption func(*MonospaceCell)
 // WithHighlighting is an option for [Devcard.Mono]. It enables syntax
 // highlighting for the code in a [MonospaceCell].
 func WithHighlighting(lang string) monospaceCellOption {
-	return func(b *MonospaceCell) {
-		b.Highlighting = lang
+	return func(c *MonospaceCell) {
+		c.Highlighting = lang
 	}
 }
 
 // Append converts vals to strings and appends them to the cell.
 // [WithHighlighting] option can be used at any position to enable syntax
 // highlighting. See [Devcard.Mono] for example.
-func (b *MonospaceCell) Append(vals ...any) {
+func (c *MonospaceCell) Append(vals ...any) {
 	i := 0
 	for _, val := range vals {
 		if opt, ok := val.(monospaceCellOption); ok {
-			opt(b)
+			opt(c)
 		} else {
 			vals[i] = val
 			i++
@@ -188,22 +188,22 @@ func (b *MonospaceCell) Append(vals ...any) {
 	vals = vals[:i]
 
 	s := valsToString(vals)
-	if b.Text != "" {
-		b.Text += "\n"
+	if c.Text != "" {
+		c.Text += "\n"
 	}
-	b.Text += s
+	c.Text += s
 }
 
 // Erase clears the content of the cell.
-func (b *MonospaceCell) Erase() {
-	b.Text = ""
+func (c *MonospaceCell) Erase() {
+	c.Text = ""
 }
 
 // NewMonospaceCell creates [MonospaceCell].
 func NewMonospaceCell(vals ...any) *MonospaceCell {
-	b := &MonospaceCell{Text: ""}
-	b.Append(vals...)
-	return b
+	c := &MonospaceCell{Text: ""}
+	c.Append(vals...)
+	return c
 }
 
 // ValueCell is a cell with pretty-printed Go values.
@@ -212,27 +212,27 @@ type ValueCell struct {
 }
 
 // Returns "ValueCell". Used for marshaling.
-func (b *ValueCell) Type() string {
+func (c *ValueCell) Type() string {
 	return "ValueCell"
 }
 
 // Append appends pretty-printed vals to the cell.
-func (b *ValueCell) Append(vals ...any) {
+func (c *ValueCell) Append(vals ...any) {
 	for _, v := range vals {
-		b.Values = append(b.Values, pprint(v))
+		c.Values = append(c.Values, pprint(v))
 	}
 }
 
 // Erase clears the content of the cell.
-func (b *ValueCell) Erase() {
-	b.Values = []string{}
+func (c *ValueCell) Erase() {
+	c.Values = []string{}
 }
 
 // NewValueCell creates [ValueCell].
 func NewValueCell(vals ...any) *ValueCell {
-	b := &ValueCell{Values: []string{}}
-	b.Append(vals...)
-	return b
+	c := &ValueCell{Values: []string{}}
+	c.Append(vals...)
+	return c
 }
 
 // AnnotatedValueCell is a cell with pretty-printed Go values that have comments
@@ -248,7 +248,7 @@ type AnnotatedValue struct {
 }
 
 // Returns "AnnotatedValueCell". Used for marshaling.
-func (b *AnnotatedValueCell) Type() string {
+func (c *AnnotatedValueCell) Type() string {
 	return "AnnotatedValueCell"
 }
 
@@ -274,22 +274,22 @@ func splitAnnotations(avals []any) []annotatedVal {
 
 // Append appends one or more AnnotatedValues to the cell. annotationsAndVals
 // are converted to annotated values by the rules described in [Devcard.Aval].
-func (b *AnnotatedValueCell) Append(annotationsAndVals ...any) {
+func (c *AnnotatedValueCell) Append(annotationsAndVals ...any) {
 	for _, av := range splitAnnotations(annotationsAndVals) {
-		b.AnnotatedValues = append(b.AnnotatedValues, AnnotatedValue{av.annotation, pprint(av.val)})
+		c.AnnotatedValues = append(c.AnnotatedValues, AnnotatedValue{av.annotation, pprint(av.val)})
 	}
 }
 
 // Erase clears the content of the cell.
-func (b *AnnotatedValueCell) Erase() {
-	b.AnnotatedValues = []AnnotatedValue{}
+func (c *AnnotatedValueCell) Erase() {
+	c.AnnotatedValues = []AnnotatedValue{}
 }
 
 // NewAnnotatedValueCell creates [AnnotatedValueCell].
 func NewAnnotatedValueCell(annotationsAndVals ...any) *AnnotatedValueCell {
-	b := &AnnotatedValueCell{AnnotatedValues: []AnnotatedValue{}}
-	b.Append(annotationsAndVals...)
-	return b
+	c := &AnnotatedValueCell{AnnotatedValues: []AnnotatedValue{}}
+	c.Append(annotationsAndVals...)
+	return c
 }
 
 // SourceCell is a cell with source code of a function.
@@ -298,29 +298,29 @@ type SourceCell struct {
 }
 
 // Returns "SourceCell". Used for marshaling.
-func (b *SourceCell) Type() string {
+func (c *SourceCell) Type() string {
 	return "SourceCell"
 }
 
 // Append converts vals to strings and appends them to the cell.
-func (b *SourceCell) Append(vals ...any) {
+func (c *SourceCell) Append(vals ...any) {
 	for _, val := range vals {
-		b.Decls = append(b.Decls, valToString(val))
+		c.Decls = append(c.Decls, valToString(val))
 	}
 }
 
 // Erase clears the content of the cell.
-func (b *SourceCell) Erase() {
-	b.Decls = b.Decls[0:0:0]
+func (c *SourceCell) Erase() {
+	c.Decls = c.Decls[0:0:0]
 }
 
 // NewSourceCell creates [SourceCell].
 func NewSourceCell(decls ...string) *SourceCell {
-	b := &SourceCell{}
+	c := &SourceCell{}
 	for _, decl := range decls {
-		b.Append(decl)
+		c.Append(decl)
 	}
-	return b
+	return c
 }
 
 // ImageCell is a cell with annotated images.
@@ -338,7 +338,7 @@ type AnnotatedImage struct {
 }
 
 // Returns "ImageCell". Used for marshaling.
-func (b *ImageCell) Type() string {
+func (c *ImageCell) Type() string {
 	return "ImageCell"
 }
 
@@ -384,23 +384,23 @@ func annotatedImages(tempDir string, vals []any) ([]AnnotatedImage, *ErrorCell) 
 
 // Append appends one or more AnnotatedImages to the cell. vals are converted to
 // annotated images by the rules described in [Devcard.Image].
-func (b *ImageCell) Append(vals ...any) {
+func (c *ImageCell) Append(vals ...any) {
 	// Empty tempDir means we're dealing with a dummy devcard; return immediately.
-	if b.tempDir == "" {
+	if c.tempDir == "" {
 		return
 	}
 
-	ai, err := annotatedImages(b.tempDir, vals)
+	ai, err := annotatedImages(c.tempDir, vals)
 	if err != nil {
-		b.Error = err
+		c.Error = err
 	} else {
-		b.Images = append(b.Images, ai...)
+		c.Images = append(c.Images, ai...)
 	}
 }
 
 // Erase clears the content of the cell.
-func (b *ImageCell) Erase() {
-	b.Images = b.Images[0:0:0]
+func (c *ImageCell) Erase() {
+	c.Images = c.Images[0:0:0]
 }
 
 // NewImageCell creates [ImageCell].
@@ -423,17 +423,17 @@ type CustomCell struct{}
 
 // Returns "CustomCell".
 // Not used anywhere; implemented to satisfy [Cell] interface.
-func (b *CustomCell) Type() string {
+func (c *CustomCell) Type() string {
 	return "CustomCell"
 }
 
 // Append panics by default. Custom Append might be implemented by user.
-func (b *CustomCell) Append(vals ...any) {
+func (c *CustomCell) Append(vals ...any) {
 	panic("method Append is not implemented for this custom cell")
 }
 
 // Erase panics by default. Custom Erase might be implemented by user.
-func (b *CustomCell) Erase() {
+func (c *CustomCell) Erase() {
 	panic("method Erase is not implemented for this custom cell")
 }
 
@@ -457,16 +457,16 @@ type JumpCell struct {
 }
 
 // Returns "JumpCell". Used for marshaling.
-func (b *JumpCell) Type() string {
+func (c *JumpCell) Type() string {
 	return "JumpCell"
 }
 
 // Noop.
-func (b *JumpCell) Append(vals ...any) {
+func (c *JumpCell) Append(vals ...any) {
 }
 
 // Noop.
-func (b *JumpCell) Erase() {
+func (c *JumpCell) Erase() {
 }
 
 // NewJumpCell creates [JumpCell].

@@ -417,9 +417,9 @@ func (d *Devcard) MarshalJSON() ([]byte, error) {
 		Cell Cell   `json:"cell"`
 	}, len(d.Cells))
 
-	for i, b := range d.Cells {
-		jsoncells[i].Type = b.Type()
-		jsoncells[i].Cell = b
+	for i, c := range d.Cells {
+		jsoncells[i].Type = c.Type()
+		jsoncells[i].Cell = c
 	}
 
 	return json.Marshal(map[string]any{
@@ -449,11 +449,11 @@ func (d *Devcard) UnmarshalJSON(data []byte) error {
 	}
 
 	d.Title = jsondevcard.Title
-	for _, b := range jsondevcard.Cells {
-		if b.Cell == nil {
+	for _, c := range jsondevcard.Cells {
+		if c.Cell == nil {
 			return fmt.Errorf("unmarshal devcard cell: nil cell")
 		}
-		cell, err := UnmarshalCell(b.Type, *b.Cell)
+		cell, err := UnmarshalCell(c.Type, *c.Cell)
 		if err != nil {
 			return fmt.Errorf("unmarshal devcard cell: %w", err)
 		}
