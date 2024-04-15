@@ -404,8 +404,10 @@ func (b *ImageCell) Erase() {
 }
 
 // NewImageCell creates [ImageCell].
-func NewImageCell(tempDir string) *ImageCell {
-	return &ImageCell{tempDir: tempDir, Images: []AnnotatedImage{}}
+func NewImageCell(tempDir string, vals ...any) *ImageCell {
+	c := &ImageCell{tempDir: tempDir, Images: []AnnotatedImage{}}
+	c.Append(vals...)
+	return c
 }
 
 type customCell interface {
