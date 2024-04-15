@@ -92,7 +92,7 @@ func (di DevcardInfo) Caption() string {
 // arbitrary place.
 var Current *Devcard
 
-// Message types are used for communication with devcards-server via TCP connection.
+// Message types are used for communication with devcards server via TCP connection.
 const (
 	MessageTypeCell  = "cell"
 	MessageTypeInfo  = "info"

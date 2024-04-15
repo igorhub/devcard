@@ -25,8 +25,8 @@ func run(cfg server.Config) (restart bool) {
 	defer cancel()
 
 	go func() {
-		log.Printf("Starting devcards server...")
-		log.Printf("Access the server via the following URL: http://127.0.0.1:%d\n", cfg.Port)
+		log.Printf("Starting devcards...")
+		log.Printf("Access the app via the following URL: http://127.0.0.1:%d\n", cfg.Port)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Println("Error running httpServer.ListenAndServe:", err)
 			os.Exit(1)
