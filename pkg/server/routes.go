@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/igorhub/devcard/pkg/internal/project"
 )
 
 func (s *server) addRoutes(cfg Config, mux *http.ServeMux) {
@@ -184,7 +185,11 @@ const (
 )
 
 func (s *server) createClient(kind, clientId, url, projectName, devcardName string) *client {
-	c := newClient(s.cfg, clientId, url, s.projects[projectName])
+	p := s.projects[projectName]
+	if p == nil {
+		p = &project.Project{Err: fmt.Errorf("project %q doesn't exist; make sure the project is declared in the config", projectName)}
+	}
+	c := newClient(s.cfg, clientId, url, p)
 	unregister := func() { s.events <- msgUnregisterClient{client: c} }
 	switch {
 	case s.projects[projectName] == nil:
