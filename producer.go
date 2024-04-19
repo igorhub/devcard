@@ -15,7 +15,7 @@ type DevcardProducer func(*Devcard)
 
 func produce(tcpAddress, tempDir string, producer DevcardProducer) (dc *Devcard) {
 	dc = newDevcard("Untitled devcard", tempDir)
-	Current = dc
+	current = dc
 
 	done := make(chan struct{})
 	if tcpAddress != "" {

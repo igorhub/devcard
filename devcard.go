@@ -48,12 +48,12 @@ func newDevcard(title, tempDir string) *Devcard {
 //		devcard.Debug(DevcardFoobar)
 //	}
 func Debug(producer DevcardProducer) {
-	Current = &Devcard{
+	current = &Devcard{
 		Title:   "Dummy devcard",
 		TempDir: "",
 		Cells:   []Cell{},
 	}
-	producer(Current)
+	producer(current)
 }
 
 // DevcardInfo describes devcard's metadata.
@@ -87,10 +87,14 @@ func (di DevcardInfo) Caption() string {
 	return di.Name
 }
 
-// Current is a global pointer to the devcard that's currently being produced.
-// It's exposed to allow the user to access the current devcard from any
-// arbitrary place.
-var Current *Devcard
+var current *Devcard
+
+// Current returns a global pointer to the devcard that's currently being
+// produced. It's exposed to allow the user to access the current devcard from
+// any arbitrary place.
+func Current() *Devcard {
+	return current
+}
 
 // Message types are used for communication with devcards server via TCP connection.
 const (
