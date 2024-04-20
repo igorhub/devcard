@@ -273,7 +273,7 @@ func splitAnnotations(avals []any) []annotatedVal {
 }
 
 // Append appends one or more AnnotatedValues to the cell. annotationsAndVals
-// are converted to annotated values by the rules described in [Devcard.Aval].
+// are converted to annotated values by the rules described in [Devcard.Ann].
 func (c *AnnotatedValueCell) Append(annotationsAndVals ...any) {
 	for _, av := range splitAnnotations(annotationsAndVals) {
 		c.AnnotatedValues = append(c.AnnotatedValues, AnnotatedValue{av.annotation, pprint(av.val)})

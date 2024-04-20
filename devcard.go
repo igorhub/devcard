@@ -234,16 +234,16 @@ func (d *Devcard) Val(vals ...any) *ValueCell {
 	return cell
 }
 
-// Aval appends an [AnnotatedValueCell] to the bottom of the devcard.
+// Ann appends an [AnnotatedValueCell] to the bottom of the devcard.
 // annotationsAndVals are split into pairs: the first value of each pair becomes
 // an annotation, the second value becomes a pretty-printed value.
 //
 // Example:
 //
-//	c.Aval("Loaded config:", cfg, "Default config:", defaultConfig())
+//	c.Ann("Loaded config:", cfg, "Default config:", defaultConfig())
 //
 // The appended AnnotatedValueCell is immediately sent to the client.
-func (d *Devcard) Aval(annotationsAndVals ...any) *AnnotatedValueCell {
+func (d *Devcard) Ann(annotationsAndVals ...any) *AnnotatedValueCell {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	cell := NewAnnotatedValueCell(annotationsAndVals...)
@@ -313,7 +313,7 @@ func (d *Devcard) Jump() *JumpCell {
 //   - For [ErrorCell], same rules as in [Devcard.Error] apply.
 //   - For [MonospaceCell], same rules as in [Devcard.Mono] apply.
 //   - For [ValueCell], same rules as in [Devcard.Val] apply.
-//   - Fro [AnnotatedValueCell], same rules as in [Devcard.Aval] apply.
+//   - Fro [AnnotatedValueCell], same rules as in [Devcard.Ann] apply.
 //   - For [ImageCell], same rules as in [Devcard.Image] apply.
 //   - For other types of cells, Append is a noop.
 //
