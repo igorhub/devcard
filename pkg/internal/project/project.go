@@ -203,6 +203,9 @@ func (p *Project) startWatching() {
 		for e := range p.events {
 			log.Printf("project %s event: %#v", filepath.Base(p.Dir), e)
 
+			// TMP
+			log.Printf("repos: %#v", p.clones)
+
 			switch e := e.(type) {
 			case msgCreateRepo:
 				repo, err := p.createRepo(e.devcardName)
