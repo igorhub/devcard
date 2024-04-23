@@ -316,6 +316,12 @@ func (p *Project) syncFile(path, repoDir string) error {
 }
 
 func replaceRootDir(dirFrom, dirTo, path string) string {
+	if dirTo == "" {
+		panic("dirTo must not be empty")
+	}
+	if dirTo == dirFrom {
+		panic("dirTo must not be the same as dirFrom")
+	}
 	rel, err := filepath.Rel(dirFrom, path)
 	if err != nil {
 		panic(fmt.Errorf("path %q must be located in %q", path, dirFrom))
