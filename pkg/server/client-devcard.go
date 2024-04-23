@@ -116,7 +116,6 @@ func (c *client) initDevcard(devcardName string, unregisterFn func()) {
 		go c.repo.Run(ctx, control, updates)
 
 		go func() {
-			ch <- msgClear()
 			init := time.Now()
 			<-updates
 			close(buildC)
@@ -133,11 +132,43 @@ func (c *client) initDevcard(devcardName string, unregisterFn func()) {
 	}
 }
 
+const warmupTime = 1000 * time.Millisecond
+
+func makeBatcher(websocketC chan<- []byte) chan []byte {
+	ch := make(chan []byte)
+	init := time.Now()
+
+	var batch [][]byte
+	go func() {
+		for msg := range ch {
+			if time.Since(init) < warmupTime {
+				batch = append(batch, msg)
+			} else if len(batch) > 0 {
+				batch = append(batch, msg)
+				websocketC <- msgBatch(batch)
+				batch = nil
+			} else {
+				websocketC <- msg
+			}
+		}
+		if len(batch) > 0 {
+			websocketC <- msgBatch(batch)
+		}
+	}()
+
+	return ch
+}
+
 func processUpdates(c *client, ch chan<- []byte, control chan<- string, updates <-chan project.UpdateMessage) {
 	var stdoutCellCreated, stderrCellCreated bool
+
+	ch = makeBatcher(ch)
+	defer close(ch)
+
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
+	ch <- msgClear()
 	for update := range updates {
 		switch x := update.(type) {
 

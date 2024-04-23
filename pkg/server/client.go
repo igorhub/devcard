@@ -121,6 +121,18 @@ func msgSetStatusBarContent(items ...string) []byte {
 	return data
 }
 
+func msgBatch(messages [][]byte) []byte {
+	js := make([]json.RawMessage, len(messages))
+	for i, msg := range messages {
+		js[i] = json.RawMessage(msg)
+	}
+	data, _ := json.Marshal(map[string]any{
+		"msgType":  "batch",
+		"messages": js,
+	})
+	return data
+}
+
 func (c *client) reportProjectError(ch chan<- []byte) {
 	ch <- msgClear()
 	ch <- msgSetTitle("Error")

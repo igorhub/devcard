@@ -34,6 +34,18 @@ window.onload = function () {
 
 dispatchMessage = function(msg) {
     switch (msg.msgType) {
+    case "batch":
+        for (m of msg.messages) {
+            innerDispatch(m)
+        }
+        break;
+    default:
+        innerDispatch(msg)
+    }
+}
+
+innerDispatch = function(msg) {
+    switch (msg.msgType) {
     case "clear":
         clearDevcard();
         break;
