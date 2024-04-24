@@ -134,8 +134,9 @@ func (c *client) initDevcard(devcardName string, unregisterFn func()) {
 
 const warmupTime = 1000 * time.Millisecond
 
-func makeBatcher(websocketC chan<- []byte) chan []byte {
+func makeBatcher(websocketC chan<- []byte) (chan []byte, chan struct{}) {
 	ch := make(chan []byte)
+	done := make(chan struct{})
 	init := time.Now()
 
 	var batch [][]byte
@@ -154,16 +155,20 @@ func makeBatcher(websocketC chan<- []byte) chan []byte {
 		if len(batch) > 0 {
 			websocketC <- msgBatch(batch)
 		}
+		close(done)
 	}()
 
-	return ch
+	return ch, done
 }
 
 func processUpdates(c *client, ch chan<- []byte, control chan<- string, updates <-chan project.UpdateMessage) {
 	var stdoutCellCreated, stderrCellCreated bool
 
-	ch = makeBatcher(ch)
-	defer close(ch)
+	ch, done := makeBatcher(ch)
+	defer func() {
+		close(ch)
+		<-done
+	}()
 
 	var wg sync.WaitGroup
 	defer wg.Wait()
