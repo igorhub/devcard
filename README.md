@@ -7,7 +7,7 @@ in a way that's similar to REPL and computational notebooks such as Jupyter.
 # How it works
 
 A devcard is a playground for visualizations and quick experiments.
-You write its code in you own codebase,
+You write its code with our own editor in you own codebase,
 and the devcards web app turns it into an web page that's shown in your browser.
 The app watches your project's source files and re-renders the page on each save.
 
@@ -62,3 +62,13 @@ Most of the time refreshing the page will fix everything,
 but please let me know about errors you're able to reproduce.
 I'll appreciate your help.
 This will make the project better.
+
+
+# Acknowledgements
+
+* Devcards owes its name and primary idea to Bruce Hauman's [devcards](https://github.com/bhauman/devcards),
+although it's more bare-bones and limited in scope.
+
+* Devcards' builtin CSS style is based upon the excellent [new.css](https://github.com/xz/new.css).
+
+* Ace of Spades icon is designed by [DesignContest](http://www.designcontest.com/) / [CC BY](http://creativecommons.org/licenses/by/4.0/).
