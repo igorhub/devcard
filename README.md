@@ -8,7 +8,7 @@ in a way that's similar to REPL and computational notebooks such as Jupyter.
 
 A devcard is a playground for visualizations and quick experiments.
 You write its code with our own editor in you own codebase,
-and the devcards web app turns it into an web page that's shown in your browser.
+and the devcards web app turns it into a web page that's shown in your browser.
 The app watches your project's source files and re-renders the page on each save.
 
 See this [short video](https://youtu.be/RciKxTDfEUA) for a quick demonstration.
