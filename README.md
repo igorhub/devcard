@@ -24,12 +24,15 @@ If you went through the examples already
 follow the following instructions.
 
 Install the devcards web app:
+
 	go install github.com/igorhub/devcard/cmd/devcards@latest
 
 Add devcard dependency to your Go modules (I recommend making a separate branch for it):
+
 	go get github.com/igorhub/devcard
 
 Start devcards from your project's directory (alternatively, add your project to the config file):
+
 	cd /path/to/your/project
 	devcards
 
