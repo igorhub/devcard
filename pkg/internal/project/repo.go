@@ -24,7 +24,7 @@ func newRepo(project *Project, devcardInfo devcard.DevcardInfo) (*Repo, error) {
 	}
 
 	var err error
-	r.Dir, err = os.MkdirTemp("", "devcards-repo-"+project.Name+"-")
+	r.Dir, err = os.MkdirTemp("", "devcards-"+project.Name+"-")
 	if err != nil {
 		return nil, fmt.Errorf("new repo: %w", err)
 	}
