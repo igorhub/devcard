@@ -12,7 +12,6 @@ import (
 	"net"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -167,9 +166,9 @@ func (r *Repo) Run(ctx context.Context, control <-chan string, updates chan<- Up
 		wg.Done()
 	}()
 
-	cmd.Run()
-	if exit := cmd.ProcessState.ExitCode(); exit != 0 {
-		updates <- MsgError{Title: "Process exited with status " + strconv.Itoa(exit)}
+	err = cmd.Run()
+	if err != nil {
+		updates <- MsgError{Title: "Execution failure", Err: err}
 	}
 
 	wg.Wait()
