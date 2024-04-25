@@ -2,7 +2,7 @@ package server
 
 import (
 	"bytes"
-	_ "embed"
+	"embed"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -101,8 +101,11 @@ func (s *server) handleRestart(w http.ResponseWriter, req *http.Request) {
 	}()
 }
 
+//go:embed assets/favicon.png
+var faviconFS embed.FS
+
 func handleFavicon(w http.ResponseWriter, req *http.Request) {
-	http.ServeFile(w, req, "/storage/down/Designcontest-Casino-Ace-of-Spades.96.png")
+	http.ServeFileFS(w, req, faviconFS, "/assets/favicon.png")
 }
 
 //go:embed assets/new.css
