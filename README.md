@@ -62,10 +62,10 @@ For API reference, see https://godocs.io/github.com/igorhub/devcard.
 
 Devcards is a young project.
 I've done reasonable job ironing out the bugs, but I expect some to still lurk beneath the surface.
-Most of the time refreshing the page will fix everything,
-but please let me know about errors you're able to reproduce.
-I'll appreciate your help.
+In most cases simply refreshing the page will fix everything.
+Still, please let me know about the errors you encounter.
 This will make the project better.
+I appreciate your help.
 
 
 # Acknowledgements
