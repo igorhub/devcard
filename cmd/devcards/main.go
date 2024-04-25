@@ -13,6 +13,8 @@ import (
 	"github.com/igorhub/devcard/pkg/server"
 )
 
+const version = "v0.7.0"
+
 func run(cfg server.Config) (restart bool) {
 	restartC := make(chan struct{})
 	server := server.NewServer(cfg, restartC)
@@ -57,8 +59,15 @@ func run(cfg server.Config) (restart bool) {
 
 func main() {
 	var port int
+	var showVersion bool
 	flag.IntVar(&port, "port", 0, "Port for the devcards server")
+	flag.BoolVar(&showVersion, "version", false, "Show version")
 	flag.Parse()
+
+	if showVersion {
+		fmt.Println(version)
+		os.Exit(0)
+	}
 
 	for {
 		cfg := server.LoadConfig()
