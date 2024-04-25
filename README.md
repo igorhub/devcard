@@ -3,6 +3,7 @@
 Devcards provides interactive visual environment for Go,
 in a way that's similar to REPL and computational notebooks such as Jupyter.
 
+<img src="https://github.com/igorhub/devcard/blob/a9caa289bd3e704fa1efbf3bb6bca8b2eee19cbe/docs/screenshot.png">
 
 # How it works
 
