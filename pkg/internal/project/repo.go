@@ -3,10 +3,10 @@ package project
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"sync"
 
 	"github.com/igorhub/devcard"
+	"github.com/igorhub/devcard/pkg/runtime"
 )
 
 type Repo struct {
@@ -29,7 +29,7 @@ func newRepo(project *Project, devcardInfo devcard.DevcardInfo) (*Repo, error) {
 		return nil, fmt.Errorf("new repo: %w", err)
 	}
 
-	r.TransientDir = filepath.Join(r.Dir, "_transient_")
+	r.TransientDir = runtime.TransientDir(r.Dir)
 
 	return r, nil
 }

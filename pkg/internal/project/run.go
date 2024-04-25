@@ -132,7 +132,7 @@ func (r *Repo) Run(ctx context.Context, control <-chan string, updates chan<- Up
 		}
 	}()
 
-	cmd := exec.CommandContext(ctx, "go", "run", ".", listener.Addr().String(), r.Dir, r.TransientDir)
+	cmd := exec.CommandContext(ctx, "go", "run", ".", r.Dir, listener.Addr().String())
 	cmd.Dir = filepath.Join(r.Dir, FindMainDir(r.DevcardInfo))
 
 	stdout, err := cmd.StdoutPipe()
@@ -167,6 +167,7 @@ func (r *Repo) Run(ctx context.Context, control <-chan string, updates chan<- Up
 
 	err = cmd.Run()
 	if err != nil {
+		err := fmt.Errorf("go run: %w\n\n# Reproduce\ncd \"%s\"\ngo run . %s", err, cmd.Dir, r.Dir)
 		updates <- MsgError{Title: "Execution failure", Err: err}
 	}
 

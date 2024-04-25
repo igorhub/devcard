@@ -9,21 +9,21 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 3 {
-		fmt.Fprintf(os.Stderr, "Usage: %s [TCP_ADDRESS] REPO_DIR TEMP_DIR\n", os.Args[0])
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "Usage: %s REPO_DIR [TCP_ADDRESS]\n", os.Args[0])
 		os.Exit(2)
 	}
-	if len(os.Args) == 3 {
-		repoDir, tempDir := os.Args[1], os.Args[2]
-		if err := os.Chdir(repoDir); err != nil {
-            fmt.Fprintf(os.Stderr, "WARNING: failed to chdir: %s", err)
-        }
-		runtime.ProduceDevcardWithJSON(tempDir, {{.Card}})
+
+    repoDir := os.Args[1]
+    if err := os.Chdir(repoDir); err != nil {
+        fmt.Fprintf(os.Stderr, "WARNING: failed to chdir: %s", err)
+    }
+
+    transientDir := runtime.TransientDir(repoDir)
+	if len(os.Args) == 2 {
+		runtime.ProduceDevcardWithJSON(transientDir, {{.Card}})
 	} else {
-		addr, repoDir, tempDir := os.Args[1], os.Args[2], os.Args[3]
-		if err := os.Chdir(repoDir); err != nil {
-            fmt.Fprintf(os.Stderr, "WARNING: failed to chdir: %s", err)
-        }
-		runtime.ProduceDevcardWithTCP(addr, tempDir, {{.Card}})
+		addr := os.Args[2]
+		runtime.ProduceDevcardWithTCP(addr, transientDir, {{.Card}})
 	}
 }

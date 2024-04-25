@@ -66,5 +66,9 @@ func ProduceDevcardWithJSON(tempDir string, producer devcard.DevcardProducer) {
 	write(outFile, dc)
 }
 
+func TransientDir(dir string) string {
+	return filepath.Join(dir, "_transient_")
+}
+
 //go:linkname produce github.com/igorhub/devcard.produce
 func produce(netAddress, tempDir string, producer devcard.DevcardProducer) *devcard.Devcard
