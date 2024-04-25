@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -26,11 +27,11 @@ func run(cfg server.Config) (restart bool) {
 
 	go func() {
 		log.Printf("Starting devcards...")
+		log.Printf("Access the app via the following URL: http://127.0.0.1:%d\n", cfg.Port)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Println("Error running httpServer.ListenAndServe:", err)
 			os.Exit(1)
 		}
-		log.Printf("Access the app via the following URL: http://127.0.0.1:%d\n", cfg.Port)
 	}()
 
 	done := make(chan struct{})
@@ -55,8 +56,15 @@ func run(cfg server.Config) (restart bool) {
 }
 
 func main() {
+	var port int
+	flag.IntVar(&port, "port", 0, "Port for the devcards server")
+	flag.Parse()
+
 	for {
 		cfg := server.LoadConfig()
+		if port != 0 {
+			cfg.Port = port
+		}
 		restart := run(cfg)
 		if !restart {
 			break
