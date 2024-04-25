@@ -107,7 +107,9 @@ func (p *Project) RemoveRepo(repo *Repo) {
 }
 
 func (p *Project) Shutdown() {
-	p.events <- msgShutdown{}
+	done := make(chan struct{})
+	p.events <- msgShutdown{done}
+	<-done
 }
 
 type projectMessage interface{ projectMessage() }
@@ -147,7 +149,9 @@ type msgFail struct {
 	err error
 }
 
-type msgShutdown struct{}
+type msgShutdown struct {
+	done chan<- struct{}
+}
 
 func (msgCreateRepo) projectMessage()  {}
 func (msgRemoveRepo) projectMessage()  {}
@@ -250,6 +254,7 @@ func (p *Project) startWatching() {
 					os.RemoveAll(dir)
 				}
 				watcher.Close()
+				close(e.done)
 				return
 			}
 		}

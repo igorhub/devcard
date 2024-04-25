@@ -51,7 +51,7 @@ func run(cfg server.Config) (restart bool) {
 		if err := httpServer.Shutdown(shutdownCtx); err != nil {
 			log.Println("Error running httpServer.Shutdown:", err)
 		}
-		done <- struct{}{}
+		close(done)
 	}()
 	<-done
 	return restart
