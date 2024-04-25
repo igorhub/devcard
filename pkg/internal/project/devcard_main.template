@@ -9,15 +9,21 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: %s [TCP_ADDRESS] TEMP_DIR\n", os.Args[0])
+	if len(os.Args) < 3 {
+		fmt.Fprintf(os.Stderr, "Usage: %s [TCP_ADDRESS] REPO_DIR TEMP_DIR\n", os.Args[0])
 		os.Exit(2)
 	}
-	if len(os.Args) == 2 {
-		tempDir := os.Args[1]
+	if len(os.Args) == 3 {
+		repoDir, tempDir := os.Args[1], os.Args[2]
+		if err := os.Chdir(repoDir); err != nil {
+            fmt.Fprintf(os.Stderr, "WARNING: failed to chdir: %s", err)
+        }
 		runtime.ProduceDevcardWithJSON(tempDir, {{.Card}})
 	} else {
-		addr, tempDir := os.Args[1], os.Args[2]
+		addr, repoDir, tempDir := os.Args[1], os.Args[2], os.Args[3]
+		if err := os.Chdir(repoDir); err != nil {
+            fmt.Fprintf(os.Stderr, "WARNING: failed to chdir: %s", err)
+        }
 		runtime.ProduceDevcardWithTCP(addr, tempDir, {{.Card}})
 	}
 }
