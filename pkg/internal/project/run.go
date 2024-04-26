@@ -167,7 +167,7 @@ func (r *Repo) Run(ctx context.Context, control <-chan string, updates chan<- Up
 
 	err = cmd.Run()
 	if err != nil {
-		err := fmt.Errorf("go run: %w\n\n# Reproduce\ncd \"%s\"\ngo run . %s", err, cmd.Dir, r.Dir)
+		err := fmt.Errorf("go run: %w", err)
 		updates <- MsgError{Title: "Execution failure", Err: err}
 	}
 
