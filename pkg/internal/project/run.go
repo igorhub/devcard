@@ -178,6 +178,7 @@ func readFromPipe(pipe io.Reader, pipeName string) <-chan UpdateMessage {
 	updates := make(chan UpdateMessage)
 	go func() {
 		defer close(updates)
+		var initialized bool
 		r := bufio.NewReader(pipe)
 		for {
 			line, err := r.ReadString('\n')
@@ -187,6 +188,10 @@ func readFromPipe(pipe io.Reader, pipeName string) <-chan UpdateMessage {
 			if err != nil {
 				updates <- MsgError{Title: "Failed to read from devcard's " + pipeName, Err: err}
 				break
+			}
+			if !initialized {
+				updates <- MsgReady{}
+				initialized = true
 			}
 			updates <- MsgPipeOut{Pipe: pipeName, Line: line}
 		}
