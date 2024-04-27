@@ -43,6 +43,8 @@ func (c *client) initListDevcards(unregisterFn func()) {
 			jump = ""
 		}
 
+		ch <- msgSetCellContent("-devcard-navigation", MdToHTML("❬ [top: settings](/) ❭"))
+
 		close(ch)
 	}
 }
