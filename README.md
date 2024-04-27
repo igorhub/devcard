@@ -12,7 +12,7 @@ You write its code with our own editor in you own codebase,
 and the devcards web app turns it into a web page that's shown in your browser.
 The app watches your project's source files and re-renders the page on each save.
 
-See this [short video](https://youtu.be/RciKxTDfEUA) for a quick demonstration.
+See this [short video](https://youtu.be/0wthHbPtnuc) for a quick demonstration.
 
 
 # Getting started
