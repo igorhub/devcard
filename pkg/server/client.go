@@ -133,6 +133,10 @@ func msgBatch(messages [][]byte) []byte {
 	return data
 }
 
+func msgNop() []byte {
+	return []byte("{\"msgType\": \"nop\"}")
+}
+
 func (c *client) reportProjectError(ch chan<- []byte) {
 	ch <- msgClear()
 	ch <- msgSetTitle("Error")

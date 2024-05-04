@@ -46,6 +46,8 @@ dispatchMessage = function(msg) {
 
 innerDispatch = function(msg) {
     switch (msg.msgType) {
+    case "nop":
+        break;
     case "clear":
         clearDevcard();
         break;
