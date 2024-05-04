@@ -227,6 +227,10 @@ func (p *Project) startWatching() {
 
 			case msgRemoveFile:
 				p.removeFile(e.path)
+				for repo := range p.clones {
+					path := replaceRootDir(p.Dir, repo, e.path)
+					os.Remove(path)
+				}
 				update <- struct{}{}
 
 			case msgGetDevcards:
