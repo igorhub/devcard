@@ -367,7 +367,7 @@ func (p *Project) updateFile(path string) error {
 		p.cache[path] = data
 		return nil
 	}
-	p.collectDecls(path, file)
+	p.collectDecls(file)
 	p.updateDevcardsInfo(path, file)
 	data, err := p.rewriteFile(file)
 	if err != nil {
@@ -377,7 +377,7 @@ func (p *Project) updateFile(path string) error {
 	return nil
 }
 
-func (p *Project) collectDecls(path string, f *ast.File) {
+func (p *Project) collectDecls(f *ast.File) {
 	for _, decl := range f.Decls {
 		if fn, ok := decl.(*ast.FuncDecl); ok {
 			p.decls[f.Name.Name+"."+fn.Name.Name] = &printer.CommentedNode{Node: fn, Comments: f.Comments}
