@@ -22,15 +22,18 @@ type Config struct {
 	Editor string
 	Opener string `toml:"custom-opener"`
 
-	Projects []struct {
-		Name string
-		Dir  string
-	}
+	Projects []projectConfig
 
 	Appearance struct {
 		Stylesheets      []string
 		CodeHighlighting string `toml:"code-highlighting"`
 	}
+}
+
+type projectConfig struct {
+	Name   string
+	Dir    string
+	Inject string
 }
 
 func configPath() (string, error) {
@@ -81,7 +84,8 @@ func (cfg *Config) readConfig(path string) {
 func (cfg *Config) readProjects() error {
 	var x struct {
 		Project map[string]struct {
-			Dir string
+			Dir    string
+			Inject string
 		}
 	}
 	meta, err := toml.Decode(string(cfg.Data), &x)
@@ -94,7 +98,11 @@ func (cfg *Config) readProjects() error {
 	}
 
 	for name, p := range x.Project {
-		cfg.Projects = append(cfg.Projects, struct{ Name, Dir string }{name, p.Dir})
+		cfg.Projects = append(cfg.Projects, projectConfig{
+			Name:   name,
+			Dir:    p.Dir,
+			Inject: p.Inject,
+		})
 	}
 
 	index := func(projectName string) int {
@@ -103,7 +111,7 @@ func (cfg *Config) readProjects() error {
 			return slices.Compare(k, s) == 0
 		})
 	}
-	slices.SortFunc(cfg.Projects, func(a, b struct{ Name, Dir string }) int {
+	slices.SortFunc(cfg.Projects, func(a, b projectConfig) int {
 		return cmp.Compare(index(a.Name), index(b.Name))
 	})
 	return nil
@@ -155,7 +163,10 @@ func defaultConfig() Config {
 	}
 	project := projectRoot(cwd)
 	if project != "" {
-		cfg.Projects = append(cfg.Projects, struct{ Name, Dir string }{filepath.Base(project), project})
+		cfg.Projects = append(cfg.Projects, projectConfig{
+			Name: filepath.Base(project),
+			Dir:  project,
+		})
 	}
 
 	return cfg

@@ -28,6 +28,7 @@ func NewServer(cfg Config, restart chan<- struct{}) *server {
 
 	for _, cfgProject := range cfg.Projects {
 		p := project.NewProject(cfgProject.Name, cfgProject.Dir)
+		p.Injection = cfgProject.Inject
 		s.projects[cfgProject.Name] = p
 		go func() {
 			for range p.Update {

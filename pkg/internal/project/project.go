@@ -27,15 +27,17 @@ import (
 const bundlingPeriod = 30 * time.Millisecond
 
 type Project struct {
-	Name   string
-	Dir    string
-	Module string
+	Name      string
+	Dir       string
+	Module    string
+	Injection string
 
 	Err    error
 	Update chan struct{}
 
 	cardsInfo []devcard.DevcardInfo
 	cache     map[string][]byte
+	packages  map[string]string
 	events    chan projectMessage
 	clones    map[string]bool
 
@@ -45,12 +47,13 @@ type Project struct {
 
 func NewProject(name, dir string) *Project {
 	p := &Project{
-		Name:   name,
-		Dir:    dir,
-		Update: make(chan struct{}, 256),
-		cache:  make(map[string][]byte),
-		events: make(chan projectMessage, 256),
-		clones: make(map[string]bool),
+		Name:     name,
+		Dir:      dir,
+		Update:   make(chan struct{}, 256),
+		cache:    make(map[string][]byte),
+		packages: make(map[string]string),
+		events:   make(chan projectMessage, 256),
+		clones:   make(map[string]bool),
 
 		fset:  token.NewFileSet(),
 		decls: make(map[string]*printer.CommentedNode),
@@ -313,7 +316,7 @@ func (p *Project) syncDir(repoDir string) error {
 	if err != nil {
 		return fmt.Errorf("sync repo %s for %s: %w", repoDir, p.Name, err)
 	}
-	return nil
+	return p.generateInjections(repoDir)
 }
 
 func (p *Project) syncFile(path, repoDir string) error {
@@ -322,6 +325,22 @@ func (p *Project) syncFile(path, repoDir string) error {
 		return os.WriteFile(dst, data, 0600)
 	}
 	return linkOrCopy(path, dst)
+}
+
+func (p *Project) generateInjections(repoDir string) error {
+	if p.Injection == "" {
+		return nil
+	}
+	var errs []error
+	for dir, pkg := range p.packages {
+		path := filepath.Join(repoDir, dir, generatedInjectionFile)
+		content := "package " + pkg + "\n\n" + p.Injection
+		err := os.WriteFile(path, []byte(content), 0664)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("cannot write code injection into %q", dir))
+		}
+	}
+	return errors.Join(errs...)
 }
 
 func replaceRootDir(dirFrom, dirTo, path string) string {
@@ -368,6 +387,7 @@ func (p *Project) updateFile(path string) error {
 		return nil
 	}
 	p.collectDecls(file)
+	p.collectPackage(path, file)
 	p.updateDevcardsInfo(path, file)
 	data, err := p.rewriteFile(file)
 	if err != nil {
@@ -383,6 +403,15 @@ func (p *Project) collectDecls(f *ast.File) {
 			p.decls[f.Name.Name+"."+fn.Name.Name] = &printer.CommentedNode{Node: fn, Comments: f.Comments}
 		}
 	}
+}
+
+func (p *Project) collectPackage(path string, f *ast.File) {
+	dir, _ := filepath.Split(path)
+	relDir, err := filepath.Rel(p.Dir, dir)
+	if err != nil {
+		panic(fmt.Errorf("collecting package: %w", err))
+	}
+	p.packages[relDir] = f.Name.Name
 }
 
 func (p *Project) source(decl string) (string, error) {

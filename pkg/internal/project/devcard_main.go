@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	generatedMainDir  = "generated_devcard_main"
-	generatedMainFile = "generated_devcard_main.go"
+	generatedMainDir       = "generated_devcard_main"
+	generatedMainFile      = "generated_devcard_main.go"
+	generatedInjectionFile = "generated_devcard_injection.go"
 )
 
 var devcardMainTemplate = makeDevcardMainTemplate()
