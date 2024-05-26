@@ -124,7 +124,9 @@ func renderAnnotatedValue(highlighter *highlighter, b *devcard.AnnotatedValueCel
 			s.WriteString("\n\n")
 		}
 		if v.Annotation != "" {
-			s.WriteString(fmt.Sprintf("// %s\n", v.Annotation))
+			for _, line := range strings.Split(v.Annotation, "\n") {
+				s.WriteString(fmt.Sprintf("// %s\n", line))
+			}
 		}
 		s.WriteString(v.Value)
 	}
