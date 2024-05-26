@@ -516,6 +516,7 @@ func devcardTitle(fset *token.FileSet, fn *ast.FuncDecl) string {
 		if _, ok := x.Args[0].(*ast.BasicLit); ok && len(s) > 1 {
 			s = s[1 : len(s)-1]
 		}
+		s = strings.ReplaceAll(s, "\\\"", "\"")
 		return s
 	}
 
