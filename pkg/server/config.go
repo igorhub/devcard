@@ -10,6 +10,7 @@ import (
 	"slices"
 
 	"github.com/BurntSushi/toml"
+	"github.com/igorhub/devcard/pkg/internal/project"
 )
 
 type Config struct {
@@ -22,18 +23,12 @@ type Config struct {
 	Editor string
 	Opener string `toml:"custom-opener"`
 
-	Projects []projectConfig
+	Projects []project.ProjectConfig
 
 	Appearance struct {
 		Stylesheets      []string
 		CodeHighlighting string `toml:"code-highlighting"`
 	}
-}
-
-type projectConfig struct {
-	Name   string
-	Dir    string
-	Inject string
 }
 
 func configPath() (string, error) {
@@ -84,8 +79,9 @@ func (cfg *Config) readConfig(path string) {
 func (cfg *Config) readProjects() error {
 	var x struct {
 		Project map[string]struct {
-			Dir    string
-			Inject string
+			Dir      string
+			Inject   string
+			PreBuild []string `toml:"pre-build-action"`
 		}
 	}
 	meta, err := toml.Decode(string(cfg.Data), &x)
@@ -98,11 +94,21 @@ func (cfg *Config) readProjects() error {
 	}
 
 	for name, p := range x.Project {
-		cfg.Projects = append(cfg.Projects, projectConfig{
-			Name:   name,
-			Dir:    p.Dir,
-			Inject: p.Inject,
-		})
+		pc := project.ProjectConfig{
+			Name:      name,
+			Dir:       p.Dir,
+			Injection: p.Inject,
+		}
+		if len(p.PreBuild) > 0 {
+			pc.PreBuildAction = &struct {
+				Cmd  string
+				Args []string
+			}{
+				Cmd:  p.PreBuild[0],
+				Args: p.PreBuild[1:],
+			}
+		}
+		cfg.Projects = append(cfg.Projects, pc)
 	}
 
 	index := func(projectName string) int {
@@ -111,7 +117,7 @@ func (cfg *Config) readProjects() error {
 			return slices.Compare(k, s) == 0
 		})
 	}
-	slices.SortFunc(cfg.Projects, func(a, b projectConfig) int {
+	slices.SortFunc(cfg.Projects, func(a, b project.ProjectConfig) int {
 		return cmp.Compare(index(a.Name), index(b.Name))
 	})
 	return nil
@@ -161,11 +167,11 @@ func defaultConfig() Config {
 		cfg.Err = err
 		return cfg
 	}
-	project := projectRoot(cwd)
-	if project != "" {
-		cfg.Projects = append(cfg.Projects, projectConfig{
-			Name: filepath.Base(project),
-			Dir:  project,
+	projectDir := projectRoot(cwd)
+	if projectDir != "" {
+		cfg.Projects = append(cfg.Projects, project.ProjectConfig{
+			Name: filepath.Base(projectDir),
+			Dir:  projectDir,
 		})
 	}
 

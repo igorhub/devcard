@@ -13,6 +13,7 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -26,11 +27,19 @@ import (
 
 const bundlingPeriod = 30 * time.Millisecond
 
+type ProjectConfig struct {
+	Name           string
+	Dir            string
+	Injection      string
+	PreBuildAction *struct {
+		Cmd  string
+		Args []string
+	}
+}
+
 type Project struct {
-	Name      string
-	Dir       string
-	Module    string
-	Injection string
+	ProjectConfig
+	Module string
 
 	Err    error
 	Update chan struct{}
@@ -45,20 +54,19 @@ type Project struct {
 	decls map[string]*printer.CommentedNode
 }
 
-func NewProject(name, dir string) *Project {
+func NewProject(projectConfig ProjectConfig) *Project {
 	p := &Project{
-		Name:     name,
-		Dir:      dir,
-		Update:   make(chan struct{}, 256),
-		cache:    make(map[string][]byte),
-		packages: make(map[string]string),
-		events:   make(chan projectMessage, 256),
-		clones:   make(map[string]bool),
+		ProjectConfig: projectConfig,
+		Update:        make(chan struct{}, 256),
+		cache:         make(map[string][]byte),
+		packages:      make(map[string]string),
+		events:        make(chan projectMessage, 256),
+		clones:        make(map[string]bool),
 
 		fset:  token.NewFileSet(),
 		decls: make(map[string]*printer.CommentedNode),
 	}
-	mod, err := moduleName(dir)
+	mod, err := moduleName(p.Dir)
 	if err != nil {
 		p.Err = err
 		return p
@@ -220,6 +228,9 @@ func (p *Project) startWatching() {
 
 			case msgUpdateFile:
 				err := p.updateFile(e.path)
+				if err == nil && p.PreBuildAction != nil {
+					err = p.runPreBuildAction(e.path)
+				}
 				if err != nil {
 					p.events <- msgFail{err}
 				}
@@ -394,6 +405,25 @@ func (p *Project) updateFile(path string) error {
 		return err
 	}
 	p.cache[path] = data
+	return nil
+}
+
+func (p *Project) runPreBuildAction(path string) error {
+	if p.PreBuildAction == nil {
+		return nil
+	}
+	args := slices.Clone(p.PreBuildAction.Args)
+	for i, arg := range args {
+		if arg == "$file" {
+			args[i] = path
+		}
+	}
+	cmd := exec.Command(p.PreBuildAction.Cmd, args...)
+	cmd.Dir = p.Dir
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%w\n\n%s", err, string(out))
+	}
 	return nil
 }
 
