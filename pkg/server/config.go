@@ -80,7 +80,7 @@ func (cfg *Config) readProjects() error {
 	var x struct {
 		Project map[string]struct {
 			Dir      string
-			Inject   string
+			Inject   string   `toml:"inject-code"`
 			PreBuild []string `toml:"pre-build-action"`
 		}
 	}
