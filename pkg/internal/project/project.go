@@ -227,12 +227,12 @@ func (p *Project) startWatching() {
 				delete(p.clones, e.repoDir)
 
 			case msgUpdateFile:
-				err := p.updateFile(e.path)
-				if err == nil && p.PreBuildAction != nil {
-					err = p.runPreBuildAction(e.path)
+				if p.IsBroken() {
+					break
 				}
-				if err != nil {
-					p.events <- msgFail{err}
+				p.Err = p.updateFile(e.path)
+				if p.Err == nil && p.PreBuildAction != nil {
+					p.Err = p.runPreBuildAction(e.path)
 				}
 				for repo := range p.clones {
 					p.syncFile(e.path, repo)
@@ -262,6 +262,7 @@ func (p *Project) startWatching() {
 				return
 
 			case msgFail:
+				// FIXME: the following code doesn't fail properly
 				p.Err = e.err
 				watcher.Close()
 				update <- struct{}{}
@@ -408,6 +409,26 @@ func (p *Project) updateFile(path string) error {
 	return nil
 }
 
+type preBuildError struct {
+	err error
+	out string
+}
+
+func (e *preBuildError) Error() string {
+	return e.err.Error() + "\n\n" + e.out
+}
+
+func isFatal(err error) bool {
+	if _, ok := err.(*preBuildError); ok {
+		return false
+	}
+	return true
+}
+
+func (p *Project) IsBroken() bool {
+	return p.Err != nil && isFatal(p.Err)
+}
+
 func (p *Project) runPreBuildAction(path string) error {
 	if p.PreBuildAction == nil {
 		return nil
@@ -422,7 +443,7 @@ func (p *Project) runPreBuildAction(path string) error {
 	cmd.Dir = p.Dir
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("%w\n\n%s", err, string(out))
+		return &preBuildError{err, string(out)}
 	}
 	return nil
 }

@@ -133,16 +133,18 @@ func msgBatch(messages [][]byte) []byte {
 	return data
 }
 
-func (c *client) reportProjectError(ch chan<- []byte) {
+func (c *client) reportProjectError(ch chan<- []byte, fatal bool) {
 	ch <- msgClear()
 	ch <- msgSetTitle("Error")
 
 	b := devcard.NewErrorCell("Server error", c.project.Err.Error())
 	ch <- msgAppendCell("error", renderCell(c.project, c.highlighter, b))
 
-	restartUrl := "/restart?redirect=" + url.QueryEscape(c.url)
-	md := fmt.Sprintf("Server cannot recover from this error. [Restart the server](%s).", restartUrl)
-	ch <- msgAppendCell("restart", MdToHTML(md))
+	if fatal {
+		restartUrl := "/restart?redirect=" + url.QueryEscape(c.url)
+		md := fmt.Sprintf("Server cannot recover from this error. [Restart the server](%s).", restartUrl)
+		ch <- msgAppendCell("restart", MdToHTML(md))
+	}
 
 	close(ch)
 }
@@ -199,7 +201,7 @@ func (c *client) runUpdates() {
 		}()
 
 		if c.project.Err != nil {
-			c.reportProjectError(retranslator)
+			c.reportProjectError(retranslator, c.project.IsBroken())
 		} else {
 			c.updateFn(ctx, retranslator)
 		}
