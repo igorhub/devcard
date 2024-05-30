@@ -10,6 +10,7 @@ func bundle(dur time.Duration, src <-chan struct{}, dst chan<- struct{}) {
 			select {
 			case _, ok := <-src:
 				if !ok {
+					dst <- struct{}{}
 					return
 				}
 				currentId++
