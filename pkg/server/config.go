@@ -79,9 +79,9 @@ func (cfg *Config) readConfig(path string) {
 func (cfg *Config) readProjects() error {
 	var x struct {
 		Project map[string]struct {
-			Dir      string
-			Inject   string   `toml:"inject-code"`
-			PreBuild []string `toml:"pre-build-action"`
+			Dir    string
+			Inject string   `toml:"inject-code"`
+			OnSave []string `toml:"on-save"`
 		}
 	}
 	meta, err := toml.Decode(string(cfg.Data), &x)
@@ -99,13 +99,13 @@ func (cfg *Config) readProjects() error {
 			Dir:       p.Dir,
 			Injection: p.Inject,
 		}
-		if len(p.PreBuild) > 0 {
+		if len(p.OnSave) > 0 {
 			pc.PreBuildAction = &struct {
 				Cmd  string
 				Args []string
 			}{
-				Cmd:  p.PreBuild[0],
-				Args: p.PreBuild[1:],
+				Cmd:  p.OnSave[0],
+				Args: p.OnSave[1:],
 			}
 		}
 		cfg.Projects = append(cfg.Projects, pc)
