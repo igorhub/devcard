@@ -11,6 +11,8 @@ func valToString(val any) string {
 	switch x := val.(type) {
 	case string:
 		return x
+	case fmt.Stringer:
+		return x.String()
 	case error:
 		return x.Error()
 	default:
