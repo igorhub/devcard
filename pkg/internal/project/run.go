@@ -132,7 +132,7 @@ func (r *Repo) Run(ctx context.Context, control <-chan string, updates chan<- Up
 		}
 	}()
 
-	cmd := exec.CommandContext(ctx, "go", "run", ".", r.Dir, listener.Addr().String())
+	cmd := exec.CommandContext(ctx, "go", "run", "-tags", "devcard", ".", r.Dir, listener.Addr().String())
 	cmd.Dir = filepath.Join(r.Dir, FindMainDir(r.DevcardInfo))
 
 	stdout, err := cmd.StdoutPipe()
