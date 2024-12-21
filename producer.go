@@ -29,7 +29,10 @@ func produce(tcpAddress, tempDir string, producer DevcardProducer) (dc *Devcard)
 	}
 
 	defer func() {
-		if e := recover(); e != nil {
+		e := recover()
+		if e == interrupt {
+			dc.Error("", "interrupted")
+		} else if e != nil {
 			dc.Jump()
 			dc.Error("Panic!")
 			switch x := e.(type) {
@@ -39,7 +42,7 @@ func produce(tcpAddress, tempDir string, producer DevcardProducer) (dc *Devcard)
 			case string:
 				dc.Append(x)
 			}
-			dc.Append(string(debug.Stack()))
+			dc.Append("\n" + string(debug.Stack()))
 		}
 		// Close dc.updates and wait for the TCP client to write all its messages.
 		close(dc.updates)
@@ -104,4 +107,10 @@ func createEchoClient(updates <-chan string, done chan struct{}) {
 		}
 		close(done)
 	}()
+}
+
+var interrupt = errors.New("devcard: interrupt")
+
+func Interrupt() {
+	panic(interrupt)
 }
