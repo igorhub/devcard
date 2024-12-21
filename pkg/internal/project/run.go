@@ -90,7 +90,7 @@ func (r *Repo) Run(ctx context.Context, control <-chan string, updates chan<- Up
 			return
 		}
 		defer conn.Close()
-		updates <- MsgReady{}
+		updates <- MsgReady{} // FIXME: updates can be closed at this point!!!
 
 		go func() {
 			wg.Add(1)
@@ -174,12 +174,15 @@ func (r *Repo) Run(ctx context.Context, control <-chan string, updates chan<- Up
 	wg.Wait()
 }
 
+const maxPipeLines = 10000
+
 func readFromPipe(pipe io.Reader, pipeName string) <-chan UpdateMessage {
 	updates := make(chan UpdateMessage)
 	go func() {
 		defer close(updates)
 		var initialized bool
 		r := bufio.NewReader(pipe)
+		n := maxPipeLines
 		for {
 			line, err := r.ReadString('\n')
 			if err == io.EOF || errors.Is(err, fs.ErrClosed) {
@@ -192,6 +195,13 @@ func readFromPipe(pipe io.Reader, pipeName string) <-chan UpdateMessage {
 			if !initialized {
 				updates <- MsgReady{}
 				initialized = true
+			}
+			n--
+			if n <= 0 {
+				if n == 0 {
+					updates <- MsgPipeOut{Pipe: pipeName, Line: "\n... output limit exceeded"}
+				}
+				continue
 			}
 			updates <- MsgPipeOut{Pipe: pipeName, Line: line}
 		}
