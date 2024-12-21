@@ -13,7 +13,7 @@ import (
 	"github.com/igorhub/devcard/pkg/server"
 )
 
-const version = "v0.10.0"
+const version = "v0.11.0"
 
 func run(cfg server.Config) (restart bool) {
 	restartC := make(chan struct{})
