@@ -8,7 +8,7 @@ import (
 	"github.com/igorhub/devcard/pkg/server"
 )
 
-const version = "v0.11.0"
+const version = "v0.12.0"
 
 func main() {
 	var port int
