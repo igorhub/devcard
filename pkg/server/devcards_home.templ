@@ -1,0 +1,68 @@
+package server
+
+import "github.com/igorhub/devcard/pkg/internal/config"
+import "io/fs"
+import "errors"
+
+// "github.com/igorhub/devcard"
+// "github.com/igorhub/devcard/pkg/internal/project"
+templ homePage(cfg config.Config) {
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<meta charset="utf-8"/>
+			<meta http-equiv="x-ua-compatible" content="ie=edge"/>
+			<title id="-dc-tab-title">Devcards</title>
+			<meta name="description" content=""/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<link href="/devcards/favicon.png" rel="icon" type="image/png"/>
+			<link href={ "/devcards/css" } rel="stylesheet"/>
+			<script type="module" src="/devcards/datastar.js"></script>
+		</head>
+		<body>
+			<h2>Devcards</h2>
+			<h4>Projects</h4>
+			@listProjects(cfg.Projects)
+			<h4>Config</h4>
+			@listConfig(cfg)
+			<h4>Server</h4>
+			<button data-on-click="@post('/devcards/restart')">Restart</button>
+			<div id="refresh"></div>
+		</body>
+	</html>
+}
+
+templ listProjects(projects []config.ProjectConfig) {
+	if len(projects)==0 {
+		<div>No projects are listed in config</div>
+	}
+	<ul>
+		for _, project := range projects {
+			<li><a href={ "/devcards/" + project.Name }>{ project.Name }</a></li>
+		}
+	</ul>
+}
+
+templ listConfig(cfg config.Config) {
+	<pre
+		class="-dc-err"
+		data-signals="{initConfigError: ''}"
+		data-show="$initConfigError != ''"
+		data-text="$initConfigError"
+	></pre>
+	if cfg.Err != nil && errors.Is(cfg.Err, fs.ErrNotExist) {
+		<div>
+			Config file doesn't exist at <code>{ cfg.Path }</code>.
+		</div>
+		<button data-on-click="@post('/devcards/init-config')">Create initial config</button>
+		{{ return }}
+	}
+	<div>Location: <code>{ cfg.Path }</code></div>
+	if cfg.Err != nil {
+		<div>
+			Unable to load config: <code class="-dc-err">{ cfg.Err.Error() }</code>.
+		</div>
+	}
+	<div>Content:</div>
+	<pre>{ string(cfg.Data) }</pre>
+}

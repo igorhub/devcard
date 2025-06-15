@@ -1,4 +1,4 @@
-package server
+package render
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ type highlighter struct {
 	css       []byte
 }
 
-func newHighlighter(style string) *highlighter {
+func NewHighlighter(style string) *highlighter {
 	return &highlighter{
 		style:     styles.Get(style),
 		formatter: html.New(html.WithClasses(true), html.ClassPrefix("-devcard-hl-")),

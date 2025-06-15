@@ -51,35 +51,62 @@ h3.err {
 	color: var(--nc-err-fg);
 }
 
+/* tmp */
+h3.title {
+	color: var(--nc-tx-2);
+}
+
+/* tmp */
+h4.title {
+	color: var(--nc-tx-2);
+}
+
+
+/* tmp (in future, use -dc-err) */
 div.err {
 	color: var(--nc-err-fg);
 	font-size: 1.25rem;
 }
-
 pre.err {
 	background: var(--nc-err-bg);
 	border: 1px solid var(--nc-err-fg);
 }
-
 code.err {
 	background: var(--nc-err-bg);
 	border: 1px solid var(--nc-err-fg);
 }
+
+
+.-dc-hidden {
+	display: none;
+}
+div.-dc-err {
+	color: var(--nc-err-fg);
+	font-size: 1.25rem;
+}
+h3.-dc-err {
+	color: var(--nc-err-fg);
+}
+pre.-dc-err {
+	background: var(--nc-err-bg);
+	border: 1px solid var(--nc-err-fg);
+}
+code.-dc-err {
+	background: var(--nc-err-bg);
+	border: 1px solid var(--nc-err-fg);
+}
+
 
 code, pre {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
 
-.import-path {
+.-dc-import-path {
 	font-weight: 300;
 }
 
-#-devcard-navigation {
-  text-align: center;
-}
-
-#-devcard-edit {
+.-dc-navigation {
   text-align: center;
 }
 
@@ -131,8 +158,9 @@ html,input,select,button {
 body {
 	/* Center body in page */
 	margin: 0 auto;
-	max-width: 750px;
-	padding: 2rem;
+	/* max-width: 750px; */
+	max-width: 1800px;
+	padding: 1rem;
 	border-radius: 6px;
 	overflow-x: hidden;
 	word-break: break-word;
@@ -141,7 +169,7 @@ body {
 
 	/* Main body text */
 	color: var(--nc-tx-2);
-	font-size: 1.03rem;
+	font-size: 1.13rem;
 	line-height: 1.5;
 }
 

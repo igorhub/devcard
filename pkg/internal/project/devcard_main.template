@@ -1,29 +1,40 @@
 package main
 
 import (
-    "fmt"
+	"fmt"
 	"os"
 
-	"github.com/igorhub/devcard/pkg/runtime"
-	{{.Import}}
+	"github.com/igorhub/devcard"
+	runtime "github.com/igorhub/devcard/pkg/runtime"
+	{{.MaybeImport}}
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: %s REPO_DIR [TCP_ADDRESS]\n", os.Args[0])
+	if len(os.Args) < 4 {
+		fmt.Fprintf(os.Stderr, "Usage: %s REPO_DIR TRANSIENT_DIR CARD_NAME [TCP_ADDRESS]\n", os.Args[0])
 		os.Exit(2)
 	}
 
-    repoDir := os.Args[1]
-    if err := os.Chdir(repoDir); err != nil {
-        fmt.Fprintf(os.Stderr, "WARNING: failed to chdir: %s", err)
-    }
+	repoDir, transientDir, cardName := os.Args[1], os.Args[2], os.Args[3]
+	if err := os.Chdir(repoDir); err != nil {
+		fmt.Fprintf(os.Stderr, "WARNING: failed to chdir: %s", err)
+	}
 
-    transientDir := runtime.TransientDir(repoDir)
-	if len(os.Args) == 2 {
-		runtime.ProduceDevcardWithJSON(transientDir, {{.Card}})
+	var producer devcard.DevcardProducer
+	switch cardName {
+	{{range .Cards}}
+	case "{{.Name}}":
+		producer = {{$.MaybePackage}}{{.Name}}
+	{{end}}
+	default:
+		fmt.Fprintf(os.Stderr, "No such devcard: %s\n", cardName)
+		os.Exit(1)
+	}
+
+	if len(os.Args) == 4 {
+		runtime.ProduceDevcardWithJSON(transientDir, producer)
 	} else {
-		addr := os.Args[2]
-		runtime.ProduceDevcardWithTCP(addr, transientDir, {{.Card}})
+		addr := os.Args[4]
+		runtime.ProduceDevcardWithTCP(addr, transientDir, producer)
 	}
 }

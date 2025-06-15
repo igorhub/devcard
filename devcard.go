@@ -6,6 +6,7 @@ package devcard
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"slices"
 	"strconv"
 	"sync"
@@ -18,12 +19,12 @@ import (
 //
 // It's safe for concurrent use.
 type Devcard struct {
-	Title   string `json:"title"`
-	TempDir string `json:"temp_dir"`
-	Cells   []Cell `json:"cells"`
+	Title   string   `json:"title"`
+	TempDir string   `json:"temp_dir"`
+	Cells   []Cell   `json:"cells"`
+	CSS     []string `json:"css,omitempty"`
 
 	lock    sync.RWMutex
-	control chan string
 	updates chan string
 }
 
@@ -33,7 +34,6 @@ func newDevcard(title, tempDir string) *Devcard {
 		TempDir: tempDir,
 		Cells:   []Cell{},
 
-		control: make(chan string),
 		updates: make(chan string, 4096),
 	}
 }
@@ -56,8 +56,8 @@ func Debug(producer DevcardProducer) {
 	producer(current)
 }
 
-// DevcardInfo describes devcard's metadata.
-type DevcardInfo struct {
+// DevcardMeta describes devcard's metadata.
+type DevcardMeta struct {
 	// ImportPath is the import path of the devcard's package.
 	ImportPath string
 
@@ -80,7 +80,7 @@ type DevcardInfo struct {
 
 // Caption returns the devcard's title, or, in case it's empty, the name of
 // devcard-producing function.
-func (di DevcardInfo) Caption() string {
+func (di DevcardMeta) Caption() string {
 	if di.Title != "" {
 		return di.Title
 	}
@@ -99,7 +99,8 @@ func Current() *Devcard {
 // Message types are used for communication with devcards server via TCP connection.
 const (
 	MessageTypeCell  = "cell"
-	MessageTypeInfo  = "info"
+	MessageTypeTitle = "title"
+	MessageTypeCSS   = "css"
 	MessageTypeError = "internal error"
 )
 
@@ -134,19 +135,57 @@ func (d *Devcard) sendLastCell() {
 	d.sendCell(len(d.Cells) - 1)
 }
 
-func (d *Devcard) sendInfo() {
-	d.send(map[string]any{
-		"msg_type": MessageTypeInfo,
-		"title":    d.Title,
-	})
-}
-
 // SetTitle sets the devcard's title and updates it on the client.
 func (d *Devcard) SetTitle(title string) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	d.Title = title
-	d.sendInfo()
+	d.send(map[string]any{
+		"msg_type": MessageTypeTitle,
+		"title":    d.Title,
+	})
+}
+
+const CSSFromServer = "CSS from devcards-server"
+
+type cssOption func(d *Devcard)
+
+// WithStandardCSS is an option for devcard.SetCSS.
+func WithStandardCSS() cssOption {
+	return func(d *Devcard) {
+		d.CSS = append([]string{CSSFromServer}, d.CSS...)
+	}
+}
+
+// SetTitle sets the devcard's CSS styles. Styles can be either strings, byte slices
+// (they get converted to strings), or options.
+//
+// Each string (or byte slice) can be either a path in a filesystem, or a block of CSS
+// code.
+//
+// Options:
+//   - WithStandardCSS(). With that option, all styles passed to SetCSS get appended to
+//     the stylesheet defined in the devcards config. Without that option, the server's
+//     stylesheet is ignored.
+func (d *Devcard) SetCSS(styles ...any) {
+	d.CSS = nil
+	for _, style := range styles {
+		switch x := style.(type) {
+		case string:
+			d.CSS = append(d.CSS, x)
+		case []byte:
+			d.CSS = append(d.CSS, string(x))
+		case cssOption:
+			x(d)
+		default:
+			fmt.Fprintf(os.Stderr, "unacceptable type of c.SetCSS argument: %T", style)
+			os.Exit(1)
+		}
+	}
+	d.send(map[string]any{
+		"msg_type": MessageTypeCSS,
+		"css":      d.CSS,
+	})
 }
 
 // Md appends a [MarkdownCell] to the bottom of the devcard. vals are converted into
@@ -175,11 +214,17 @@ func (d *Devcard) Html(vals ...any) *HTMLCell {
 	return cell
 }
 
-// MdFmt is a convenience wrapper for [Devcard.Md].
+// Mdf is a convenience wrapper for [Devcard.Md].
 //
 // It's implemented as `return d.Md(fmt.Sprintf(format, a...))`.
-func (d *Devcard) MdFmt(format string, a ...any) *MarkdownCell {
+func (d *Devcard) Mdf(format string, a ...any) *MarkdownCell {
 	return d.Md(fmt.Sprintf(format, a...))
+}
+
+// DEPRECATED: Please use Mdf.
+func (d *Devcard) MdFmt(format string, a ...any) *MarkdownCell {
+	format = "`[MdFmt is deprecated; please use Mdf]`\n" + format
+	return d.Mdf(format, a...)
 }
 
 // Error appends an [ErrorCell] to the bottom of the devcard.
@@ -214,11 +259,17 @@ func (d *Devcard) Mono(vals ...any) *MonospaceCell {
 	return cell
 }
 
-// MonoFmt is a convenience wrapper for Mono.
+// Monof is a convenience wrapper for Mono.
 //
 // It's implemented as `return d.Mono(fmt.Sprintf(format, a...))`.
-func (d *Devcard) MonoFmt(format string, a ...any) *MonospaceCell {
+func (d *Devcard) Monof(format string, a ...any) *MonospaceCell {
 	return d.Mono(fmt.Sprintf(format, a...))
+}
+
+// DEPRECATED: Please use Monof.
+func (d *Devcard) MonoFmt(format string, a ...any) *MonospaceCell {
+	format = "[MonoFmt is deprecated; please use Monof]\n" + format
+	return d.Monof(format, a...)
 }
 
 // Val appends a [ValueCell] to the bottom of the devcard. vals are

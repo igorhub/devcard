@@ -24,8 +24,8 @@ func (s *server) handleEdit(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	info := project.DevcardInfo(devcardName)
-	if info == (devcard.DevcardInfo{}) {
+	meta := project.GetDevcards().Lookup(devcardName)
+	if meta == (devcard.DevcardMeta{}) {
 		w.Write(errorHeader)
 		w.Write([]byte("Devcard " + devcardName + " not found in " + projectName + "."))
 		return
@@ -34,11 +34,11 @@ func (s *server) handleEdit(w http.ResponseWriter, req *http.Request) {
 	var err error
 	switch {
 	case s.cfg.Opener != "":
-		err = openCustom(s.cfg.Opener, filepath.Join(project.Dir, info.Path), info.Line)
+		err = openCustom(s.cfg.Opener, filepath.Join(project.Dir, meta.Path), meta.Line)
 	case strings.ToLower(s.cfg.Editor) == "emacs":
-		err = openInEmacs(filepath.Join(project.Dir, info.Path), info.Line)
+		err = openInEmacs(filepath.Join(project.Dir, meta.Path), meta.Line)
 	case strings.ToLower(s.cfg.Editor) == "vscode":
-		err = openInVscode(filepath.Join(project.Dir, info.Path), info.Line)
+		err = openInVscode(filepath.Join(project.Dir, meta.Path), meta.Line)
 	}
 
 	if err != nil {

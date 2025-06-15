@@ -1,4 +1,4 @@
-package server
+package render
 
 import (
 	"fmt"
@@ -10,24 +10,9 @@ import (
 	mdhtml "github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
 	"github.com/igorhub/devcard"
-	"github.com/igorhub/devcard/pkg/internal/project"
 )
 
-func MdToHTML(md string) string {
-	// create markdown parser with extensions
-	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock | parser.LaxHTMLBlocks
-	p := parser.NewWithExtensions(extensions)
-	doc := p.Parse([]byte(md))
-
-	// create HTML renderer with extensions
-	htmlFlags := mdhtml.CommonFlags
-	opts := mdhtml.RendererOptions{Flags: htmlFlags}
-	renderer := mdhtml.NewRenderer(opts)
-
-	return string(markdown.Render(doc, renderer))
-}
-
-func renderCell(project *project.Project, highlighter *highlighter, b devcard.Cell) string {
+func RenderCell(highlighter *highlighter, b devcard.Cell) string {
 	switch b := b.(type) {
 	case *devcard.MarkdownCell:
 		return renderMarkdown(b)
@@ -42,7 +27,8 @@ func renderCell(project *project.Project, highlighter *highlighter, b devcard.Ce
 	case *devcard.AnnotatedValueCell:
 		return renderAnnotatedValue(highlighter, b)
 	case *devcard.SourceCell:
-		return renderSource(project, highlighter, b)
+		return renderError("Not implemented", "cannot render SourceCell - not implemented")
+		// return renderSource(project, highlighter, b)
 	case *devcard.ImageCell:
 		return renderImage(b)
 	case *devcard.JumpCell:
@@ -52,6 +38,7 @@ func renderCell(project *project.Project, highlighter *highlighter, b devcard.Ce
 	case nil:
 		return renderError("Rendering error: trying to render nil", "")
 	default:
+		fmt.Printf("[render] %#v\n", b)
 		return renderError(fmt.Sprintf("Rendering error: unknown type '%s'", b.Type()), "")
 	}
 }
@@ -67,8 +54,22 @@ func renderError(title, body string) string {
 	return result
 }
 
+func marknownToHTML(md string) string {
+	// create markdown parser with extensions
+	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock | parser.LaxHTMLBlocks
+	p := parser.NewWithExtensions(extensions)
+	doc := p.Parse([]byte(md))
+
+	// create HTML renderer with extensions
+	htmlFlags := mdhtml.CommonFlags
+	opts := mdhtml.RendererOptions{Flags: htmlFlags}
+	renderer := mdhtml.NewRenderer(opts)
+
+	return string(markdown.Render(doc, renderer))
+}
+
 func renderMarkdown(b *devcard.MarkdownCell) string {
-	return MdToHTML(b.Text)
+	return marknownToHTML(b.Text)
 }
 
 func renderMonospace(highlighter *highlighter, b *devcard.MonospaceCell) string {
@@ -86,24 +87,26 @@ func renderMonospace(highlighter *highlighter, b *devcard.MonospaceCell) string 
 	return result
 }
 
-func renderSource(project *project.Project, highlighter *highlighter, b *devcard.SourceCell) string {
-	if len(b.Decls) == 0 {
-		return ""
-	}
-
-	s := strings.Builder{}
-	for i, decl := range b.Decls {
-		if i != 0 {
-			s.WriteString("\n\n")
-		}
-		src, err := project.Source(decl)
-		if err != nil {
-			return renderError("SourceCell error", err.Error())
-		}
-		s.WriteString(src)
-	}
-	return renderMonospace(highlighter, devcard.NewMonospaceCell(s.String(), devcard.WithHighlighting("go")))
-}
+// // TODO: implement
+//
+//	func renderSource(project *project.Project, highlighter *highlighter, b *devcard.SourceCell) string {
+//		if len(b.Decls) == 0 {
+//			return ""
+//		}
+//
+//		s := strings.Builder{}
+//		for i, decl := range b.Decls {
+//			if i != 0 {
+//				s.WriteString("\n\n")
+//			}
+//			src, err := project.Source(decl)
+//			if err != nil {
+//				return renderError("SourceCell error", err.Error())
+//			}
+//			s.WriteString(src)
+//		}
+//		return renderMonospace(highlighter, devcard.NewMonospaceCell(s.String(), devcard.WithHighlighting("go")))
+//	}
 
 func renderValue(highlighter *highlighter, b *devcard.ValueCell) string {
 	values := strings.Join(b.Values, "\n\n")

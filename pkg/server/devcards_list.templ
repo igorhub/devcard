@@ -1,0 +1,57 @@
+package server
+
+import (
+	"github.com/igorhub/devcard"
+	"github.com/igorhub/devcard/pkg/internal/project"
+)
+
+templ projectPage(project, fromDevcard string, cardsMeta project.DevcardsMetaSlice) {
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<meta charset="utf-8"/>
+			<meta http-equiv="x-ua-compatible" content="ie=edge"/>
+			<title id="-dc-tab-title">Devcards: { project }</title>
+			<meta name="description" content=""/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<link href="/devcards/favicon.png" rel="icon" type="image/png"/>
+			<link href={ "/devcards/css" } rel="stylesheet"/>
+		</head>
+		<body>
+			<h2>Devcards: { project }</h2>
+			for _, packageMeta := range cardsMeta.GroupByImportPath() {
+				{{
+		label := ""
+		if packageMeta.Lookup(fromDevcard) != (devcard.DevcardMeta{}) {
+			label = "jump-here"
+		}
+				}}
+				@dcPackage(project, packageMeta, label)
+			}
+			<div class="-dc-navigation">
+				❬
+				<a href="/devcards">top</a>
+				❭
+			</div>
+			<script type="text/javascript">
+				document.getElementById("jump-here").scrollIntoView();
+			</script>
+		</body>
+	</html>
+}
+
+templ dcPackage(project string, cardsMeta project.DevcardsMetaSlice, label string) {
+	<h4 id={ label }>
+		{ cardsMeta[0].Package }
+		<span class="-dc-import-path">{ cardsMeta[0].ImportPath }</span>
+	</h4>
+	<ul>
+		for _, m := range cardsMeta {
+			<li>
+				<a href={ templ.SafeURL("/devcards/" + project + "/" + m.Name) }>
+					{ m.Caption() }
+				</a>
+			</li>
+		}
+	</ul>
+}

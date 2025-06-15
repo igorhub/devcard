@@ -1,0 +1,119 @@
+package server
+
+import (
+	"github.com/igorhub/devcard/pkg/internal/config"
+	"github.com/igorhub/devcard/pkg/internal/runner"
+)
+
+templ devcardPage(cfg config.Config, style, devcardProject, devcardName, initialTitle string, navBar navBar) {
+	{{ addr := "/devcards/" + devcardProject + "/" + devcardName }}
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<meta charset="utf-8"/>
+			<meta http-equiv="x-ua-compatible" content="ie=edge"/>
+			<title id="-dc-tab-title">{ initialTitle }</title>
+			<meta name="description" content=""/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<link href="/devcards/favicon.png" rel="icon" type="image/png"/>
+			<script type="module" src="/devcards/datastar.js"></script>
+			<style id="-dc-style">{ style }</style>
+		</head>
+		<body>
+			<script type="text/javascript">
+openInEditor = function() {
+    fetch({{ addr + "/edit" }})
+        .then((response) => response.text())
+        .then((text) => {
+            if (text != "") {
+                alert(text)
+            }
+        });
+}
+</script>
+			<div data-signals={ "{devcards: {project:'" + devcardProject + "', name:'" + devcardName + "', runnerId: ''}}" }></div>
+			<div id="-dc-page">
+				@dcStatus(addr)
+				@dcTitle(initialTitle, cfg.Editor != "")
+				<div id="-dc-cells"></div>
+				@dcError(runner.Error{})
+				<div id="-dc-stdout-box"></div>
+				<div id="-dc-stderr-box"></div>
+				@dcNavigation(devcardProject, devcardName, navBar)
+			</div>
+			<div data-on-load="@post('/devcards/sse', {openWhenHidden: true})"></div>
+		</body>
+	</html>
+}
+
+templ dcStatus(addr string) {
+	<div data-signals="{devcards: {buildTime:'', runTime:'', testFailures:'0', disconnected:false}}"></div>
+	<div id="-dc-status">
+		<code
+			data-show="$devcards.buildTime!=''"
+			data-text="'build: ' + $devcards.buildTime"
+		></code>
+		<code
+			data-show="$devcards.runTime!=''"
+			data-text="'run: ' + $devcards.runTime"
+		></code>
+		<code class="-dc-err" data-show="$devcards.disconnected">
+			connection lost: <a href={ addr }>reload</a>
+		</code>
+	</div>
+}
+
+templ dcStdout(content string) {
+	<div id="-dc-stdout-box">
+		<h3>Stdout:</h3>
+		<pre id="-dc-stdout">{ content }</pre>
+	</div>
+}
+
+templ dcStderr(content string) {
+	<div id="-dc-stderr-box">
+		<h3 class="-dc-err">Stderr:</h3>
+		<pre id="-dc-stderr">{ content }</pre>
+	</div>
+}
+
+templ dcNavigation(project, card string, bar navBar) {
+	<div class="-dc-navigation">
+		❬
+		if bar.prev != "" {
+			<a href={ templ.SafeURL("/devcards/" + project + "/" + bar.prev) }>prev: { bar.prev }</a> |
+		}
+		<a href={ templ.SafeURL("/devcards/" + project + "?from=" + card) }>top: { bar.pkg }</a>
+		if bar.next != "" {
+			| <a href={ templ.SafeURL("/devcards/" + project + "/" + bar.next) }>next: { bar.next }</a>
+		}
+		❭
+	</div>
+}
+
+templ dcTitle(title string, showEditButton bool) {
+	{{ const sz = 24 }}
+	<h2 id="-dc-title">
+		if showEditButton {
+			<a href="javascript:openInEditor()">
+				<svg width={ sz } height={ sz } viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path stroke="rgb(0,112,243)" d="M18 10L14 6M18 10L21 7L17 3L14 6M18 10L17 11M14 6L8 12V16H12L14.5 13.5M20 14V20H12M10 4L4 4L4 20H7" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+				</svg>
+			</a>
+		}
+		{ title }
+	</h2>
+}
+
+templ dcError(e runner.Error) {
+	<div id="-dc-error">
+		if e.Err != nil {
+			<div class="-dc-err">
+				{ e.Title }
+			</div>
+			<pre class="-dc-err">
+				{ e.Err.Error() }
+			</pre>
+		}
+	</div>
+}

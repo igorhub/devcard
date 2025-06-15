@@ -19,7 +19,7 @@ func produce(tcpAddress, tempDir string, producer DevcardProducer) (dc *Devcard)
 
 	done := make(chan struct{})
 	if tcpAddress != "" {
-		err := createTCPClient(tcpAddress, dc.control, dc.updates, done)
+		err := createTCPClient(tcpAddress, dc.updates, done)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return
@@ -53,7 +53,7 @@ func produce(tcpAddress, tempDir string, producer DevcardProducer) (dc *Devcard)
 	return
 }
 
-func createTCPClient(address string, control chan<- string, updates <-chan string, done chan struct{}) error {
+func createTCPClient(address string, updates <-chan string, done chan struct{}) error {
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
 		return fmt.Errorf("unable to create TCP client: %w", err)
@@ -77,8 +77,6 @@ func createTCPClient(address string, control chan<- string, updates <-chan strin
 			case "exit":
 				conn.Close()
 				os.Exit(0)
-			case "unblock":
-				control <- parts[1]
 			default:
 				fmt.Fprintf(os.Stderr, "Malformed message on TCP connection: %#v", s)
 			}

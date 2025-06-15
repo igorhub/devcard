@@ -1,4 +1,4 @@
-package server
+package config
 
 import (
 	"cmp"
@@ -10,7 +10,6 @@ import (
 	"slices"
 
 	"github.com/BurntSushi/toml"
-	"github.com/igorhub/devcard/pkg/internal/project"
 )
 
 type Config struct {
@@ -23,12 +22,19 @@ type Config struct {
 	Editor string
 	Opener string `toml:"custom-opener"`
 
-	Projects []project.ProjectConfig
+	Projects []ProjectConfig
 
 	Appearance struct {
 		Stylesheets      []string
 		CodeHighlighting string `toml:"code-highlighting"`
 	}
+}
+
+type ProjectConfig struct {
+	Name       string
+	Dir        string
+	Injection  string
+	Generators map[string][]string
 }
 
 func configPath() (string, error) {
@@ -79,9 +85,9 @@ func (cfg *Config) readConfig(path string) {
 func (cfg *Config) readProjects() error {
 	var x struct {
 		Project map[string]struct {
-			Dir    string
-			Inject string   `toml:"inject-code"`
-			OnSave []string `toml:"on-save"`
+			Dir        string
+			Inject     string              `toml:"inject-code"`
+			Generators map[string][]string `toml:"code-generators"`
 		}
 	}
 	meta, err := toml.Decode(string(cfg.Data), &x)
@@ -94,19 +100,11 @@ func (cfg *Config) readProjects() error {
 	}
 
 	for name, p := range x.Project {
-		pc := project.ProjectConfig{
-			Name:      name,
-			Dir:       p.Dir,
-			Injection: p.Inject,
-		}
-		if len(p.OnSave) > 0 {
-			pc.PreBuildAction = &struct {
-				Cmd  string
-				Args []string
-			}{
-				Cmd:  p.OnSave[0],
-				Args: p.OnSave[1:],
-			}
+		pc := ProjectConfig{
+			Name:       name,
+			Dir:        p.Dir,
+			Injection:  p.Inject,
+			Generators: p.Generators,
 		}
 		cfg.Projects = append(cfg.Projects, pc)
 	}
@@ -117,7 +115,7 @@ func (cfg *Config) readProjects() error {
 			return slices.Compare(k, s) == 0
 		})
 	}
-	slices.SortFunc(cfg.Projects, func(a, b project.ProjectConfig) int {
+	slices.SortFunc(cfg.Projects, func(a, b ProjectConfig) int {
 		return cmp.Compare(index(a.Name), index(b.Name))
 	})
 	return nil
@@ -169,7 +167,7 @@ func defaultConfig() Config {
 	}
 	projectDir := projectRoot(cwd)
 	if projectDir != "" {
-		cfg.Projects = append(cfg.Projects, project.ProjectConfig{
+		cfg.Projects = append(cfg.Projects, ProjectConfig{
 			Name: filepath.Base(projectDir),
 			Dir:  projectDir,
 		})
