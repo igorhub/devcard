@@ -2,14 +2,17 @@ package config
 
 import (
 	"cmp"
+	"embed"
 	"errors"
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 	"slices"
 
 	"github.com/BurntSushi/toml"
+	"github.com/igorhub/devcard/pkg/internal/file"
 )
 
 type Config struct {
@@ -149,7 +152,25 @@ code-highlighting = "tango"
 	s := fmt.Sprintf(format, cfg.Port, projectsStr)
 
 	os.Mkdir(filepath.Dir(cfg.Path), 0775)
+	createGenerators(filepath.Dir(cfg.Path))
 	return os.WriteFile(cfg.Path, []byte(s), 0664)
+}
+
+//go:embed generators
+var generatorsFS embed.FS
+
+func createGenerators(configDir string) {
+	files, _ := generatorsFS.ReadDir("generators")
+	for _, f := range files {
+		out := filepath.Join(configDir, f.Name())
+		if file.Exists(out) {
+			continue
+		}
+		data, _ := fs.ReadFile(generatorsFS, "generators/"+f.Name())
+		if err := os.WriteFile(out, data, 0777); err != nil {
+			log.Printf("Failed to write a generator file (%s): %s\n", out, err)
+		}
+	}
 }
 
 func defaultConfig() Config {
